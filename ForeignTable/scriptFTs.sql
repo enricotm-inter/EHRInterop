@@ -1,7 +1,7 @@
 
 DROP FOREIGN SERVER FTServer CASCADE
 GO
-CREATE FOREIGN SERVER FTServer FOREIGN DATA WRAPPER CSV HOST 'your-dirpath-here'
+CREATE FOREIGN SERVER FTServer FOREIGN DATA WRAPPER CSV HOST 'samplesPathPlaceholder'
 GO
 CREATE FOREIGN TABLE hs_diagnosis (
   dxg_pk VARCHAR(8000),
@@ -256,4 +256,3 @@ CREATE FOREIGN TABLE hs_social_history (
   soc_tr2_dat DATETIME,
   soc_tr3_dat DATETIME
 ) SERVER FTServer FILE 'hs_social_history.csv' USING {"from" : {"file" : {"header": 1, "charset": "UTF-8", "columnseparator": ";"} } }
-GO
