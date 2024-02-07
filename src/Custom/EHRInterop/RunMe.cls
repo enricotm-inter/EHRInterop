@@ -7,12 +7,13 @@ ClassMethod Run(compile As %Boolean = 1, sql As %Boolean = 1) As %Status
     Set tSC = $$$OK
 
     #; Get root directory path
-    Read "Give the path for the root directory: ", dirPath
+    Read "Give the full path for the root directory: ", dirPath
 
     If (compile) {
         #; Import and compile all of the classes
         Set srcPath = dirPath_"\src"
-        Set tSC = $SYSTEM.OBJ.ImportDir(dirPath,"","c",,1)
+        Write !, "Compiling classes on '"_srcPath_"...", !
+        Set tSC = $SYSTEM.OBJ.ImportDir(srcPath,"","c",,1)
         $$$ThrowOnError(tSC)
     }
 
@@ -21,6 +22,8 @@ ClassMethod Run(compile As %Boolean = 1, sql As %Boolean = 1) As %Status
         Set sqlPath = dirPath_"\ForeignTable\scriptFTs.sql"
         Set samplesPath = dirPath_"\ForeignTable\Samples"
         Set sqlFile = ##class(%File).%New(sqlPath)
+        Set tSC = sqlFile.Open("RU")
+        $$$ThrowOnError(tSC)
         Set sqlTxt = sqlFile.Read(.sqlLen, .tSC)
         Set sqlTxt = $REPLACE(sqlTxt, "samplesPathPlaceholder", samplesPath)
 
