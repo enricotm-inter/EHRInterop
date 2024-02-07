@@ -54,7 +54,7 @@ Give the full path for the root directory:
 ```
 > ***DISCLAIMER:** Make sure to give the **full** path of the directory, not just the relative one.*
 
-This should compile all the other classes and run the necessary SQL statements to create [Foreign Tables](https://docs.intersystems.com/supplychain20231/csp/docbook/Doc.View.cls?KEY=RSQL_createforeigntable) to all the csv files inside `ForeignTable/Samples`
+After giving the path, it should compile all the other classes and run the necessary SQL statements to create the [Foreign Tables](https://docs.intersystems.com/supplychain20231/csp/docbook/Doc.View.cls?KEY=RSQL_createforeigntable) to all the csv files inside `ForeignTable/Samples`
 ```
 [...]
 
