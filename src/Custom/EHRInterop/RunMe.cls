@@ -14,7 +14,6 @@ ClassMethod Run(compile As %Boolean = 1, sql As %Boolean = 1) As %Status
         Set srcPath = dirPath_"\src"
         Write !, "Compiling classes on '"_srcPath_"...", !
         Set tSC = $SYSTEM.OBJ.ImportDir(srcPath,"","c",,1)
-        $$$ThrowOnError(tSC)
     }
 
     If (sql) {
