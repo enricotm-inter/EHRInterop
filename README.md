@@ -1,6 +1,19 @@
 # EHR Interop - Induction Kit
 
 ---
+## Prerequisites
+- Intersystems IRIS Instance (2023.1 or higher)
+> ***DISCLAIMER:** Be sure the current license key supports **Foreign Tables**.*
+- Visual Studio Code
+> ***DISCLAIMER:** **Studio** can also be used as an IDE, however some of the following steps apply only to **VSCode**.*
+- Git
+
+In case it have not been done yet, clone the current repository using `git`
+```
+git clone https://github.com/enricotm-inter/EHRInterop.git
+```
+
+---
 ## Setting up `settings.json`
 
 Rename the file inside `.vscode` from `settings.json.example` to `settings.json`  
