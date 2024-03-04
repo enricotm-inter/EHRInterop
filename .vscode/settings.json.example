@@ -1,9 +1,9 @@
 {
     "objectscript.conn": {
         "host": "localhost",
-        "port": 52773,
-        "username": "your-username",
-        "ns": "your-namespace",
+        "port": 52775,
+        "username": "_SYSTEM",
+        "ns": "HSCUSTOM",
         "active": false,
     }
 }

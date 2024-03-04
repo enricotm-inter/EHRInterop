@@ -58,7 +58,7 @@ Compile the file `RunMe.cls` inside the folder `src/Custom/EHRInterop`
 
 After compiling it, open an IRIS Terminal and run the following command:
 ```
-Do ##class(Custom.EHRInterop.RunMe).Run()
+Do ##class(HSCUSTOM.EHRInterop.RunMe).Run()
 ```
 
 If everything was done successfully, a prompt should appear asking for the root path of the directory:
