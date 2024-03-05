@@ -1,4 +1,4 @@
-Class Custom.EHRInterop.RunMe Extends %RegisteredObject
+Class Custom.EHRInterop.Setup Extends %RegisteredObject
 {
 
 /// Run this method to set up your IRIS environment
@@ -24,13 +24,12 @@ ClassMethod CreateForeignTables() As %Status
 {
     Set tSC = $$$OK
     #; Read the sql script
-    Set sqlPath = "/mnt/scriptFTs.sql"
+    Set sqlPath = "/mnt/query.sql"
     Set samplesPath = "/mnt/Samples"
     Set sqlFile = ##class(%File).%New(sqlPath)
     Set tSC = sqlFile.Open("RU")
     $$$ThrowOnError(tSC)
     Set sqlTxt = sqlFile.Read(.sqlLen, .tSC)
-    #; Set sqlTxt = $REPLACE(sqlTxt, "samplesPathPlaceholder", samplesPath)
 
     #; Run the sql queries
     Set queries = $LFS(sqlTxt, "GO")

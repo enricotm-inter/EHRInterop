@@ -1,18 +1,20 @@
 services:
   iris:
     image: intersystems/irishealth-community:2023.1
-    container_name: irishealth-community
+    container_name: ehrinterop-irishealth-community
+    entrypoint: /mnt/setup.sh
     ports:
       - 1972:1972
       - 52775:52773
     volumes:
       - ./src:/mnt/src
       - ./Samples:/mnt/Samples
-      - ./scriptFTs.sql:/mnt/scriptFTs.sql
+      - ./query.sql:/mnt/query.sql
+      - ./setup.sh:/mnt/setup.sh
   # iris:
   #   build: .
   #   container_name: irishealth-community
-  #   entrypoint: /mnt/irishealth-community-setup.sh
+  #   entrypoint: /mnt/setup.sh
   #   ports:
   #     - 1972:1972
   #     - 52775:52773
@@ -21,7 +23,7 @@ services:
   #     - ./Samples:/mnt/Samples
   #     - ./scriptFTs.sql:/mnt/scriptFTs.sql
   #     - ./iris-main.log:/mnt/iris-main.log
-  #     - ./irishealth-community-setup.sh:/mnt/irishealth-community-setup.sh
+  #     - ./setup.sh:/mnt/setup.sh
   # setup:
   #   image: ubuntu:latest
   #   container_name: irishealth-community-setup
