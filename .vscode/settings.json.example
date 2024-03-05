@@ -1,9 +1,0 @@
-{
-    "objectscript.conn": {
-        "host": "localhost",
-        "port": 52775,
-        "username": "_SYSTEM",
-        "ns": "HSCUSTOM",
-        "active": false,
-    }
-}
