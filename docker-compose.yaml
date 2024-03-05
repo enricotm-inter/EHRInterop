@@ -1,0 +1,32 @@
+services:
+  iris:
+    image: intersystems/irishealth-community:2023.1
+    container_name: irishealth-community
+    ports:
+      - 1972:1972
+      - 52775:52773
+    volumes:
+      - ./src:/mnt/src
+      - ./Samples:/mnt/Samples
+      - ./scriptFTs.sql:/mnt/scriptFTs.sql
+  # iris:
+  #   build: .
+  #   container_name: irishealth-community
+  #   entrypoint: /mnt/irishealth-community-setup.sh
+  #   ports:
+  #     - 1972:1972
+  #     - 52775:52773
+  #   volumes:
+  #     - ./src:/mnt/src
+  #     - ./Samples:/mnt/Samples
+  #     - ./scriptFTs.sql:/mnt/scriptFTs.sql
+  #     - ./iris-main.log:/mnt/iris-main.log
+  #     - ./irishealth-community-setup.sh:/mnt/irishealth-community-setup.sh
+  # setup:
+  #   image: ubuntu:latest
+  #   container_name: irishealth-community-setup
+  #   depends_on:
+  #     - iris
+  #   entrypoint: /mnt/docker-entrypoint.sh
+  #   volumes:
+  #     - ./docker-entrypoint.sh:/mnt/docker-entrypoint.sh
