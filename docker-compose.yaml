@@ -7,4 +7,7 @@ services:
       - 1972:1972
       - 52775:52773
     volumes:
-      - .:/mnt
+      - ./Samples:/mnt/Samples
+      - ./src:/mnt/src
+      - ./query.sql:/mnt/query.sql
+      - ./setup.sh:/mnt/setup.sh
