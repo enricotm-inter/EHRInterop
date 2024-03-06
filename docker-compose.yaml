@@ -7,28 +7,4 @@ services:
       - 1972:1972
       - 52775:52773
     volumes:
-      - ./src:/mnt/src
-      - ./Samples:/mnt/Samples
-      - ./query.sql:/mnt/query.sql
-      - ./setup.sh:/mnt/setup.sh
-  # iris:
-  #   build: .
-  #   container_name: irishealth-community
-  #   entrypoint: /mnt/setup.sh
-  #   ports:
-  #     - 1972:1972
-  #     - 52775:52773
-  #   volumes:
-  #     - ./src:/mnt/src
-  #     - ./Samples:/mnt/Samples
-  #     - ./scriptFTs.sql:/mnt/scriptFTs.sql
-  #     - ./iris-main.log:/mnt/iris-main.log
-  #     - ./setup.sh:/mnt/setup.sh
-  # setup:
-  #   image: ubuntu:latest
-  #   container_name: irishealth-community-setup
-  #   depends_on:
-  #     - iris
-  #   entrypoint: /mnt/docker-entrypoint.sh
-  #   volumes:
-  #     - ./docker-entrypoint.sh:/mnt/docker-entrypoint.sh
+      - ./mnt
