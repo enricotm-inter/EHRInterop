@@ -8,6 +8,7 @@ COPY setup.sh /mnt/setup.sh
 
 USER root
 RUN touch /mnt/iris-main.log
+RUN chown irisowner:irisowner iris-main.log
 RUN apt-get update && apt-get install dos2unix
 RUN dos2unix setup.sh
 USER irisowner
