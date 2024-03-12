@@ -2,11 +2,25 @@ Class Custom.EHRInterop.Setup Extends %RegisteredObject
 {
 
 /// Run this method to set up your IRIS environment
-ClassMethod Run(compile As %Boolean = 1, sql As %Boolean = 1) As %Status
+ClassMethod Run(compile As %Boolean = 1, sql As %Boolean = 1, mount As %Boolean = 1) As %Status
 {
     Set tSC = $$$OK
+    Set $NAMESPACE="EHRINTEROP"
     Do:(compile) CompileClasses()
     Do:(sql) CreateForeignTables()
+    Do:(mount) MountNamespace()
+    Return tSC
+}
+
+ClassMethod MountNamespace() As %Status
+{
+    Set tSC = $$$OK
+    New $NAMESPACE
+    Set $NAMESPACE="%SYS"
+    Set db = ##class(SYS.Database).%New()
+    Set db.Directory = "/usr/irissys/mgr/EHRINTEROP"
+    Set tSC = db.%Save()
+    Do db.Mount()
     Return tSC
 }
 
