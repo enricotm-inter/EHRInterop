@@ -1,4 +1,4 @@
-Class SDAENGINEPKG.FoundationProduction Extends Ens.Production [ Not ProcedureBlock ]
+Class EHRINTEROPPKG.FoundationProduction Extends Ens.Production [ Not ProcedureBlock ]
 {
 
 XData ProductionDefinition
@@ -12,9 +12,10 @@ XData ProductionDefinition
   <Item Name="Servinte EHRInterop Operation" Category="" ClassName="Custom.EHRInterop.DSP.Operation.BuildSDAOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
     <Setting Target="Host" Name="CodingStandard">SERVINTE</Setting>
     <Setting Target="Host" Name="SendingFacility">SERVINTE</Setting>
-    <Setting Target="Adapter" Name="DSN">irisJDBC</Setting>
-    <Setting Target="Adapter" Name="JGService">JG</Setting>
     <Setting Target="Host" Name="SOAPHost">HSEDGESERVINTE SOAP Operation</Setting>
+    <Setting Target="Adapter" Name="JGService">JG</Setting>
+    <Setting Target="Adapter" Name="DSN">irisJDBC</Setting>
+    <Setting Target="Adapter" Name="Credentials">irisJDBC</Setting>
     <Setting Target="Adapter" Name="StayConnected">-1</Setting>
   </Item>
   <Item Name="Servinte EHRInterop Service ByDate PRC" Category="" ClassName="Custom.EHRInterop.Core.Service.ByDate" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
