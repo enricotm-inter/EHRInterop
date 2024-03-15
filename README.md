@@ -2,10 +2,7 @@
 
 ---
 ## Prerequisites
-- Intersystems IRIS Instance (2023.1 or higher)
-> ***DISCLAIMER:** Be sure the current license key supports **Foreign Tables**.*
-- Visual Studio Code
-> ***DISCLAIMER:** **Studio** can also be used as an IDE, however some of the following steps apply only to **VSCode**.*
+- Docker
 - Git
 
 In case it have not been done yet, clone the current repository using `git`
@@ -14,67 +11,43 @@ git clone https://github.com/enricotm-inter/EHRInterop.git
 ```
 
 ---
-## Setting up `settings.json`
+## Running the `Docker` container
+To start the IRIS instance, simply run `docker compose up` in the terminal
+> *After running **docker compose up**, there is no need for any further configuration. This section will walkthrough some of the steps for the initialization, but it may be skipped to [Opening the Management Portal](#opening-the-management-portal)*
 
-Rename the file inside `.vscode` from `settings.json.example` to `settings.json`  
-```
-└── .vscode
-    └── settings.json
-```
-Change the respective values in `settings.json` so VS Code can connect to your IRIS instance
-```
-{
-    "objectscript.conn": {
-        "host": "localhost",
-        "port": 52773,
-        "username": "your-username",
-        "ns": "your-namespace",
-        "active": false,
-    }
-}
-```
-- **host:** The IRIS instance host IP *(Commonly: "localhost")*
-- **port:** The IRIS instance host port *(Commonly: 52773)*
-- **username:** The username to login into the IRIS instance
-- **ns:** The namespace within the IRIS instance to use
-- **active:** Whether or not the server is connected to the IRIS instance *(Must be set to `true`)*
-  
-For more information on how to configure a server inside VS Code, check the [documentation](https://docs.intersystems.com/components/csp/docbook/DocBook.UI.Page.cls?KEY=GVSCO_config#GVSCO_config_basics_settings).
+![alt text](images/buildimage.png)
+
+After building the docker image, the IRIS instance should be starting
+
+![alt text](images/startiris.png)
+
+When the instance finishes to start, it will initiate its setup
+
+![alt text](images/startsetup.png)
+
+If everything worked correctly, the terminal should show that the setup was executed
+
+![alt text](images/finishsetup.png)
+
+Also, it is possible to check in the logs if all the classes compiled succesfully and if the queries were executed
+
+![alt text](images/finishcompile.png)
+
+![alt text](images/finishquery.png)
+> *It is expected to receive **1** query error, due to the `DROP FOREIGN SERVER ...` statement*
 
 ---
-## Running `RunMe.cls`
+## Opening the Management Portal
+
+First, make sure the instance finished starting and setting up before continuing
+
+![alt text](images/finishsetup.png)
+
+If the IRIS instance finished starting up, it is possible to access the instance **Management Portal** with the url *http://localhost:52775/csp/healthshare/ehrinterop/EnsPortal.ProductionConfig.zen* that will open directly into the **Production**
+
+When prompted, use username `ehrinterop_client` and password `1010` to login
+
+![alt text](images/loginiris.png)
 
 
-Compile the file `RunMe.cls` inside the folder `src/Custom/EHRInterop`
-```
-└── src
-    └── Custom
-        └── EHRInterop
-            ...
-            └── RunMe.cls
-```
-
-> ***DISCLAIMER:** This may be done only once. After compiling it for the first time, there is no need to redo it.*
-
-After compiling it, open an IRIS Terminal and run the following command:
-```
-Do ##class(Custom.EHRInterop.RunMe).Run()
-```
-
-If everything was done successfully, a prompt should appear asking for the root path of the directory:
-```
-Give the full path for the root directory: 
-```
-> ***DISCLAIMER:** Make sure to give the **full** path of the directory, not just the relative one.*
-
-After giving the path, it should compile all the other classes and run the necessary SQL statements to create the [Foreign Tables](https://docs.intersystems.com/supplychain20231/csp/docbook/Doc.View.cls?KEY=RSQL_createforeigntable) to all the csv files inside `ForeignTable/Samples`
-```
-[...]
-
-Queries
-..........Errors: 1
-......Successful: 11
-```
-> ***DISCLAIMER:** It is expected to receive 1 query error the first time you run the command, due to the `DROP FOREIGN SERVER ...` statement.*
-
-### If everything worked, the IRIS instance is ready for testing the EHR Interop Induction Kit!
+### If everything worked, the IRIS instance should open the Production and should be ready for testing the EHR Interop Induction Kit!
