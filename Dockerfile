@@ -20,5 +20,4 @@ RUN dos2unix setup.sh
 # Change back to irisowner
 USER irisowner
 
-ENTRYPOINT [ "/tini", "--", "/iris-main" ]
-# ENTRYPOINT [ "/tini", "--", "/iris-main", "-a", "/mnt/setup.sh" ]
+ENTRYPOINT [ "/tini", "--", "/iris-main", "-a", "/mnt/setup.sh" ]
