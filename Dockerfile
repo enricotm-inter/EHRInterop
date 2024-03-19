@@ -12,10 +12,10 @@ USER root
 # Create necessary log file and change ownership
 RUN touch iris-main.log
 RUN chown irisowner:irisowner iris-main.log
-# Make setup.sh executable
-RUN chmod +x setup.sh
 # Install dependencies
 RUN apt-get update && apt-get install dos2unix
+# Configure setup.sh to be executable and use LF
+RUN chmod +x setup.sh
 RUN dos2unix setup.sh
 # Change back to irisowner
 USER irisowner
