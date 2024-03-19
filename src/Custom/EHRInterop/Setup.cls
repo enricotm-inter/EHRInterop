@@ -1,7 +1,7 @@
 Class Custom.EHRInterop.Setup Extends %RegisteredObject
 {
 
-/// Run this method to set up your IRIS environment
+/// Run this method to set up the IRIS environment
 ClassMethod Run() As %Status
 {
     Set tSC = $$$OK
