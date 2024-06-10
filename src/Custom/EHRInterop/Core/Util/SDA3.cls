@@ -21,7 +21,7 @@ ClassMethod CodeTableRaw(pTableName As %String, pCode As %String, pDescription A
 		Quit ""
 	}
 	If ##class(%Dictionary.CompiledClass).%ExistsId("HS.SDA3.CodeTableDetail."_pTableName) {
-		Set tTable = $ZObjClassMethod("HS.SDA3.CodeTableDetail."_pTableName,"%New")
+		Set tTable = $ZOBJCLASSMETHOD("HS.SDA3.CodeTableDetail."_pTableName,"%New")
 	}
 	Else {
 		Set tTable = ##class(HS.SDA3.CodeTableDetail).%New()
@@ -53,20 +53,20 @@ ClassMethod CodeTableText(pTableName As %String, pText As %String, pCodingStanda
 	If pText = "" {
 		Quit ""
 	}
-	Set tText = $ZStrip($ZConvert(pText,"W"),"<>W")
-	Quit ..CodeTable(pTableName, $Extract(tText), tText, pCodingStandard)
+	Set tText = $ZSTRIP($ZCONVERT(pText,"W"),"<>W")
+	Quit ..CodeTable(pTableName, $EXTRACT(tText), tText, pCodingStandard)
 }
 
 // Remove caracteres de controle, exceto line feed, carriage return e tab
 
 ClassMethod RemoveControlChars(pText) As %String
 {
-	FOR code=1:1:31
+	For code=1:1:31
 	{
-		if (code '= 10) && (code '= 13) && (code '= 9)
+		If (code '= 10) && (code '= 13) && (code '= 9)
 		{
-			Set byte = $Char(code)
-			Set pText = $Translate(pText,byte,"")
+			Set byte = $CHAR(code)
+			Set pText = $TRANSLATE(pText,byte,"")
 		}
 	}
 	
@@ -128,13 +128,13 @@ ClassMethod ToDynamicObj(pRS As %ResultSet, ByRef tRS As %DynamicObject) As %Sta
 	Quit tSC
 }
 
-ClassMethod SmartStrip(ByRef pValue As %String, keepChar = "") As %String
+ClassMethod SmartStrip(pValue As %String, keepChar = "") As %String
 {
 	Set:(keepChar = "") keepChar = $CHAR(10,13)
 	Set tValue = pValue
 	Set tValue = $ZSTRIP(tValue, "*C",, keepChar)
 	If ($ZCONVERT(tValue, "O", "UTF8")'=tValue) {
-		For i=$L(tValue):-1:1 {
+		For i=$LENGTH(tValue):-1:1 {
 			Set char = $EXTRACT(tValue,i,i)
 			Set:($ZCONVERT(char, "O", "UTF8")'=char) $EXTRACT(tValue,i,i) = ""
 		}

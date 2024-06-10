@@ -12,7 +12,7 @@ ClassMethod GetLabOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 					"LAB_ORD_DAT, "_
 					"LAB_COD, "_
 					"LAB_DSC, "_
-					"case lab_sta when 'CA-CANCELADO' then 'CA' when 'TE-RECIBIDO/TERMINADO' then 'CM' else lab_sta end as LAB_STA, "_
+					"LAB_STA, "_
                     "LAB_CLI_COD, "_
 					"LAB_CLI_CONS_COD, "_
 					"LAB_CLI_CONS_DSC, "_
