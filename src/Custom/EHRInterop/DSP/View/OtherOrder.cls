@@ -20,9 +20,10 @@ ClassMethod GetOtherOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByP
                     "OTH_CLI_CONS_DSC, "_
                     "OTH_CLI_NAM, "_
                     "OTH_RES_BDT, "_
-                    "(select enc_fac_cod from hs_encounter where enc_pk = oth_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = oth_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-				"FROM HS_OTHER_ORDER "_
+                    "ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+				"FROM hs_other_order "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = OTH_ENC_FK "_
 				"WHERE OTH_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND OTH_ENC_FK = ? "

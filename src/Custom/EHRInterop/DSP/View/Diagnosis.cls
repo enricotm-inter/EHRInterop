@@ -20,24 +20,23 @@ ClassMethod GetDiagnosesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 					"DXG_TYP_COD, "_
 					"DXG_TYP_DSC, "_
 					"DXG_PRI, "_      
-					#; "(case DXG_ADM when 'TRUE' then 'TRUE' else 'FALSE' end) DXG_ADM, "_
-					#; "(case DXG_DCH when 'TRUE' then 'TRUE' else 'FALSE' end) DXG_DCH, "_
 					"DXG_ADM, "_
 					"DXG_DCH, "_
-					"(select distinct(enc_fac_cod) from hs_encounter where enc_pk = dxg_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select distinct(enc_fac_dsc) from hs_encounter where enc_pk = dxg_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
+					"ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
 				"FROM hs_diagnosis "_
-				"WHERE dxg_pat_fk = ? "
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = DXG_ENC_FK "_
+				"WHERE DXG_PAT_FK = ? "
 				
-	Set:pIncludeWhereByEnc tSQL = tSQL_"AND dxg_enc_fk = ? "
-	Set:pIncludeWhereByPK tSQL = tSQL_"AND dxg_pk = ? "
+	Set:pIncludeWhereByEnc tSQL = tSQL_"AND DXG_ENC_FK = ? "
+	Set:pIncludeWhereByPK tSQL = tSQL_"AND DXG_PK = ? "
 
 	Quit tSQL
 }
 
 ClassMethod TriggerDXGByDate() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_

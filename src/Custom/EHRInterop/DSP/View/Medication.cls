@@ -35,9 +35,10 @@ ClassMethod GetMedicationsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByP
                     "med_dat as DATA_REGISTRO_ATUALIZ, "_
                     "med_dat as DATA_REGISTRO_LIB, "_
                     "med_dat as DATA_REGISTRO_SUSPENSAO, "_
-                    "(select enc_fac_cod from hs_encounter where enc_pk = med_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = med_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-				"FROM HS_MEDICATION "_
+                    "ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+				"FROM hs_medication "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = MED_ENC_FK "_
 				"WHERE MED_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND MED_ENC_FK = ? "
@@ -48,7 +49,7 @@ ClassMethod GetMedicationsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByP
 
 ClassMethod TriggerMEDByDate() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_

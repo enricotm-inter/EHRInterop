@@ -21,9 +21,10 @@ ClassMethod GetLabOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 					"LAB_RES_BDT, "_
 					"LAB_RES_BOD, "_
 					"LAB_RES_NAM, "_
-					"(select enc_fac_cod from hs_encounter where enc_pk = lab_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = lab_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-				"FROM HS_LAB_ORDER "_
+					"ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+				"FROM hs_lab_order "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = LAB_ENC_FK "_
 				"WHERE LAB_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND LAB_ENC_FK = ? "

@@ -31,7 +31,7 @@ ClassMethod GetEncountersByPat(pIncludeWhereByPK As %Boolean) As %String
 
 ClassMethod TriggerENCByDate() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_
@@ -65,7 +65,7 @@ ClassMethod TriggerENCByDate() As %String
 
 ClassMethod TriggerENCByDateDaily() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_
@@ -99,7 +99,7 @@ ClassMethod TriggerENCByDateDaily() As %String
 
 ClassMethod TriggerENCByDelete() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_

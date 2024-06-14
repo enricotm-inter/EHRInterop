@@ -16,9 +16,10 @@ ClassMethod GetProceduresByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK
 					"PRC_CLI_CONS_COD, "_
 					"PRC_CLI_CONS_DSC, "_
 					"PRC_CLI_NAM, "_
-					"(select distinct(enc_fac_cod) from hs_encounter where enc_pk = prc_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select distinct(enc_fac_dsc) from hs_encounter where enc_pk = prc_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
+					"ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
 				"FROM HS_PROCEDURE "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = PRC_ENC_FK "_
 				"WHERE PRC_PAT_FK = ? "
 	
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND PRC_ENC_FK = ? "
@@ -29,7 +30,7 @@ ClassMethod GetProceduresByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK
 
 ClassMethod TriggerPRCByDate() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_

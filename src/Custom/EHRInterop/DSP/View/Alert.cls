@@ -4,33 +4,34 @@ Class Custom.EHRInterop.DSP.View.Alert Extends %RegisteredObject
 ClassMethod GetAlertsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK As %Boolean) As %String
 {
     Set tSQL = "SELECT "_
-						"AL_PK as ALT_PK, "_
-						"ALT_PAT_FK, "_
-						"ALT_ENC_FK, "_
-						"ALT_TYP_COD, "_
-						"ALT_TYP_DSC, "_
-						"ALT_COD, "_
-						"ALT_DSC, "_
-						"ALT_STA, "_
-						"ALT_DAT, "_
-						"ALT_CLI_COD, "_
-						"ALT_CLI_CONS_COD, "_
-						"ALT_CLI_CONS_DSC, "_
-						"ALT_CLI_NAM, "_
-                    "(select enc_fac_cod from hs_encounter where enc_pk = alt_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = alt_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
+					"ALT_PK, "_
+					"ALT_PAT_FK, "_
+					"ALT_ENC_FK, "_
+					"ALT_TYP_COD, "_
+					"ALT_TYP_DSC, "_
+					"ALT_COD, "_
+					"ALT_DSC, "_
+					"ALT_STA, "_
+					"ALT_DAT, "_
+					"ALT_CLI_COD, "_
+					"ALT_CLI_CONS_COD, "_
+					"ALT_CLI_CONS_DSC, "_
+					"ALT_CLI_NAM, "_
+                    "ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
 				"FROM hs_alert "_
-				"WHERE alt_pat_fk = ? "
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = ALT_ENC_FK "_
+				"WHERE ALT_PAT_FK = ? "
 				
-	Set:pIncludeWhereByEnc tSQL = tSQL_"AND alt_enc_fk = ? "
-	Set:pIncludeWhereByPK tSQL = tSQL_"AND al_pk = ? "
+	Set:pIncludeWhereByEnc tSQL = tSQL_"AND ALT_ENC_FK = ? "
+	Set:pIncludeWhereByPK tSQL = tSQL_"AND ALT_PK = ? "
   	
   	Quit tSQL
 }
 
 ClassMethod TriggerALTByDate() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_

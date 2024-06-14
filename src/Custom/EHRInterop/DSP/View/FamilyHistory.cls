@@ -16,9 +16,10 @@ ClassMethod GetFamilyHistoriesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWher
                     "FAM_STA, "_
                     "FAM_KIN_COD, "_
                     "FAM_KIN_DSC, "_
-                    "(select enc_fac_cod from hs_encounter where enc_pk = fam_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = fam_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-                "FROM HS_FAMILY_HISTORY "_
+                    "ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+                "FROM hs_family_history "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = FAM_ENC_FK "_
 				"WHERE FAM_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND FAM_ENC_FK = ? "

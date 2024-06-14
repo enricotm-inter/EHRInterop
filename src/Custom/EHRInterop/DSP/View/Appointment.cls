@@ -4,37 +4,38 @@ Class Custom.EHRInterop.DSP.View.Appointment Extends %RegisteredObject
 ClassMethod GetAppointmentsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK As %Boolean) As %String
 {
     Set tSQL = "SELECT "_
-						"APT_PK, "_
-						"APT_PAT_FK, "_
-						"NULL APT_ENC_FK, "_
-						"APT_CLI_COD, "_
-						"APT_CLI_CONS_COD, "_
-						"APT_CLI_CONS_DSC, "_
-						"APT_CLI_NAM, "_
-						"(CASE WHEN LENGTH(APT_LOC_DSC) > 0 THEN APT_LOC_COD ELSE '' END) APT_LOC_COD, "_
-						"APT_LOC_DSC, "_
-						"APT_DAT, "_
-						"APT_NSH, "_
-						"(CASE WHEN APT_STA = 'C' THEN 'CANCELLED' ELSE 'BOOKED' END) APT_STA, "_
-						"APT_TYP_COD, "_
-						"APT_TYP_DSC, "_
-						"APT_ITE_COD, "_
-						"APT_ITE_DSC, "_
-						"APT_TXT, "_
-                    "(select enc_fac_cod from hs_encounter where enc_pk = apt_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = apt_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
+					"APT_PK, "_
+					"APT_PAT_FK, "_
+					"NULL APT_ENC_FK, "_
+					"APT_CLI_COD, "_
+					"APT_CLI_CONS_COD, "_
+					"APT_CLI_CONS_DSC, "_
+					"APT_CLI_NAM, "_
+					"(CASE WHEN LENGTH(APT_LOC_DSC) > 0 THEN APT_LOC_COD ELSE '' END) APT_LOC_COD, "_
+					"APT_LOC_DSC, "_
+					"APT_DAT, "_
+					"APT_NSH, "_
+					"(CASE WHEN APT_STA = 'C' THEN 'CANCELLED' ELSE 'BOOKED' END) APT_STA, "_
+					"APT_TYP_COD, "_
+					"APT_TYP_DSC, "_
+					"APT_ITE_COD, "_
+					"APT_ITE_DSC, "_
+					"APT_TXT, "_
+                    "ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
 				"FROM hs_appointment "_
-				"WHERE apt_pat_fk = ? "
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = APT_ENC_FK "_
+				"WHERE APT_PAT_FK = ? "
 				
-	Set:pIncludeWhereByEnc tSQL = tSQL_"AND apt_enc_fk = ? "
-	Set:pIncludeWhereByPK tSQL = tSQL_"AND apt_pk = ? "
+	Set:pIncludeWhereByEnc tSQL = tSQL_"AND APT_ENC_FK = ? "
+	Set:pIncludeWhereByPK tSQL = tSQL_"AND APT_PK = ? "
   	
   	Quit tSQL
 }
 
 ClassMethod TriggerAPTByDate() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_
@@ -67,7 +68,7 @@ ClassMethod TriggerAPTByDate() As %String
 
 ClassMethod TriggerAPTByDateDaily() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_

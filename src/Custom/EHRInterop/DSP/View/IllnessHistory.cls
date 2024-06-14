@@ -17,9 +17,10 @@ ClassMethod GetIllnessHistoriesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhe
                     "ILL_NOT, "_
                     "ILL_STA, "_
                     "ILL_DAT, "_
-                    "(select enc_fac_cod from hs_encounter where enc_pk = ill_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = ill_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-                "FROM HS_ILLNESS_HISTORY "_
+                    "ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+                "FROM hs_illness_history "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = ILL_ENC_FK "_
 				"WHERE ILL_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND ILL_ENC_FK = ? "

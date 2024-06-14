@@ -18,9 +18,10 @@ ClassMethod GetObservationsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereBy
 					"OBS_UNT_DSC, "_
 					"OBS_STA, "_
 					"OBS_DAT, "_
-					"(select distinct(enc_fac_cod) from hs_encounter where enc_pk = obs_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select distinct(enc_fac_dsc) from hs_encounter where enc_pk = obs_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-				"FROM HS_OBSERVATION "_
+					"ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+				"FROM hs_observation "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = OBS_ENC_FK "_
 				"WHERE OBS_PAT_FK = ? "
 				
 				
@@ -33,7 +34,7 @@ ClassMethod GetObservationsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereBy
 
 ClassMethod TriggerOBSByDate() As %String
 {
-	set tSQL = "SELECT "_
+	Set tSQL = "SELECT "_
 				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
 				"ENTITY_ID, "_
 				"PATIENT_ID, "_

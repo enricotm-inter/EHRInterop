@@ -18,9 +18,10 @@ ClassMethod GetDocumentsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 					"DOC_BDT, "_
 					"DOC_BOD, "_
 					"DOC_STA, "_
-					"(select distinct(enc_fac_cod) from hs_encounter where enc_pk = doc_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select distinct(enc_fac_dsc) from hs_encounter where enc_pk = doc_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-				"FROM HS_DOCUMENT "_
+					"ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+				"FROM hs_document "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = DOC_ENC_FK "_
 				"WHERE DOC_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND DOC_ENC_FK = ? "

@@ -40,7 +40,7 @@ ClassMethod GetPatientByPat() As %String
 					"PAT_DTH_DAT, "_
 					"PAT_DTH_LOC "_
 				"FROM hs_patient  "_
-				"WHERE pat_pk = ? "
+				"WHERE PAT_PK = ? "
 
 	Quit tSQL
 }

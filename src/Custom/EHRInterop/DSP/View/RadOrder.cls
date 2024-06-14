@@ -21,9 +21,10 @@ ClassMethod GetRadOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
                     "RAD_RES_BOD, "_
                     "RAD_RES_NAM, "_
                     "RAD_RES_DAT, "_
-                    "(select enc_fac_cod from hs_encounter where enc_pk = rad_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_COD, "_
-					"(select enc_fac_dsc from hs_encounter where enc_pk = rad_enc_fk and length(enc_fac_dsc) > 0) as ENC_FAC_DSC "_
-				"FROM HS_RAD_ORDER "_
+                    "ENC_FAC_COD, "_
+					"ENC_FAC_DSC "_
+				"FROM hs_rad_order "_
+				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = RAD_ENC_FK "_
 				"WHERE RAD_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND RAD_ENC_FK = ? "
