@@ -14,7 +14,7 @@ ClassMethod GetOtherOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByP
                     "OTH_COD, "_
                     "OTH_DSC, "_
                     "OTH_RES_NAM, "_
-                    "case oth_sta when 'CA-CANCELADO' then 'CA' when 'TE-RECIBIDO/TERMINADO' then 'CM' else oth_sta end as OTH_STA, "_
+                    "OTH_STA, "_
                     "OTHCLI_COD as OTH_CLI_COD, "_
                     "OTH_CLI_CONS_COD, "_
                     "OTH_CLI_CONS_DSC, "_
@@ -22,8 +22,8 @@ ClassMethod GetOtherOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByP
                     "OTH_RES_BDT, "_
                     "ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-				"FROM hs_other_order "_
-				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = OTH_ENC_FK "_
+				"FROM HS_OTHER_ORDER "_
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = OTH_ENC_FK "_
 				"WHERE OTH_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND OTH_ENC_FK = ? "

@@ -9,7 +9,7 @@ ClassMethod GetObservationsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereBy
 					"OBS_ENC_FK, "_
 					"OBS_CLI_COD, "_
 					"OBS_CLI_CONS_COD, "_
-					"BS_CLI_CONS_DSC, "_
+					"OBS_CLI_CONS_DSC, "_
 					"OBS_CLI_NAM, "_
 					"OBS_COD, "_
 					"OBS_DSC, "_
@@ -20,12 +20,10 @@ ClassMethod GetObservationsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereBy
 					"OBS_DAT, "_
 					"ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-				"FROM hs_observation "_
-				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = OBS_ENC_FK "_
+				"FROM HS_OBSERVATION "_
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = OBS_ENC_FK "_
 				"WHERE OBS_PAT_FK = ? "
-				
-				
-				
+					
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND OBS_ENC_FK = ? "
 	Set:pIncludeWhereByPK tSQL = tSQL_"AND OBS_PK = ? "
 

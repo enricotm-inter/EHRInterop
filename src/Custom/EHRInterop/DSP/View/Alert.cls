@@ -19,7 +19,7 @@ ClassMethod GetAlertsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK As 
 					"ALT_CLI_NAM, "_
                     "ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-				"FROM hs_alert "_
+				"FROM HS_ALERT "_
 				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = ALT_ENC_FK "_
 				"WHERE ALT_PAT_FK = ? "
 				

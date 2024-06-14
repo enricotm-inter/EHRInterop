@@ -8,7 +8,7 @@ ClassMethod GetDiagnosesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 					"DXG_ENC_FK, "_
 					"DXG_PAT_FK, "_
 					"DXG_TYP, "_
-					"(case when DXG_COD = '' then 'NULL' else DXG_COD end) DXG_COD, "_
+					"DXG_COD, "_
 					"DXG_DSC, "_
 					"DXG_DAT, "_
 					"DXG_CLI_COD, "_
@@ -24,8 +24,8 @@ ClassMethod GetDiagnosesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 					"DXG_DCH, "_
 					"ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-				"FROM hs_diagnosis "_
-				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = DXG_ENC_FK "_
+				"FROM HS_DIAGNOSIS "_
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = DXG_ENC_FK "_
 				"WHERE DXG_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND DXG_ENC_FK = ? "

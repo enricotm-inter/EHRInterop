@@ -17,8 +17,8 @@ ClassMethod GetSocialHistoriesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWher
                     "SOC_NOT, "_
                     "ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-                "FROM hs_social_history "_
-				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = SOC_ENC_FK "_
+                "FROM HS_SOCIAL_HISTORY "_
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = SOC_ENC_FK "_
 				"WHERE SOC_PAT_FK = ? "
     
     Set:pIncludeWhereByEnc tSQL = tSQL_"AND SOC_ENC_FK = ? "

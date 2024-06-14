@@ -12,7 +12,7 @@ ClassMethod GetRadOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
                     "RAD_ORD_DAT, "_
                     "RAD_COD, "_
                     "RAD_DSC, "_
-                    "case rad_sta when 'CA-CANCELADO' then 'CA' when 'TE-RECIBIDO/TERMINADO' then 'CM' else rad_sta end as RAD_STA, "_
+                    "RAD_STA, "_
                     "RAD_CLI_COD, "_
                     "RAD_CLI_CONS_COD, "_
                     "RAD_CLI_CONS_DSC, "_
@@ -23,8 +23,8 @@ ClassMethod GetRadOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
                     "RAD_RES_DAT, "_
                     "ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-				"FROM hs_rad_order "_
-				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = RAD_ENC_FK "_
+				"FROM HS_RAD_ORDER "_
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = RAD_ENC_FK "_
 				"WHERE RAD_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND RAD_ENC_FK = ? "
@@ -59,40 +59,6 @@ ClassMethod TriggerRADByDate() As %String
 				"SELECT rad_pk, rad_pat_fk, rad_enc_fk, rad_tr1_dat, rad_tr2_dat, rad_tr3_dat FROM hs_rad_order WHERE rad_tr2_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND rad_tr2_dat <= NOW() "_
 				"UNION "_
 				"SELECT rad_pk, rad_pat_fk, rad_enc_fk, rad_tr1_dat, rad_tr2_dat, rad_tr3_dat FROM hs_rad_order WHERE rad_tr3_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND rad_tr3_dat <= NOW() "_
-				") "_
-				") "_
-				"ORDER BY ENTITY_DATE "_
-				") "
-				
-	Quit tSQL
-}
-
-ClassMethod TriggerRADByDateDaily() As %String
-{
-	Set tSQL = "SELECT TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
-				"ENTITY_ID, "_
-				"PATIENT_ID, "_
-				"ENCOUNTER_ID, "_
-				"ENTITY_TYPE, "_
-				"ENTITY_DATE FROM ( "_
-				"SELECT * FROM ( "_
-				"/* Rad Order */ "_
-				"SELECT "_
-				"rad_pk ENTITY_ID, "_
-				"rad_pat_fk PATIENT_ID, "_
-				"rad_enc_fk ENCOUNTER_ID, "_
-				"'PAT,ENC,RAD' ENTITY_TYPE, "_
-				"LEAST(DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')), GREATEST( "_
-				"NVL(rad_tr1_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')), "_
-				"NVL(rad_tr2_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')), "_
-				"NVL(rad_tr3_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')) "_
-				")) ENTITY_DATE "_
-				"FROM ( "_
-				"SELECT rad_pk, rad_pat_fk, rad_enc_fk, rad_tr1_dat, rad_tr2_dat, rad_tr3_dat FROM hs_rad_order WHERE rad_tr1_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND rad_tr1_dat <= DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')) "_
-				"UNION "_
-				"SELECT rad_pk, rad_pat_fk, rad_enc_fk, rad_tr1_dat, rad_tr2_dat, rad_tr3_dat FROM hs_rad_order WHERE rad_tr2_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND rad_tr2_dat <= DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')) "_
-				"UNION "_
-				"SELECT rad_pk, rad_pat_fk, rad_enc_fk, rad_tr1_dat, rad_tr2_dat, rad_tr3_dat FROM hs_rad_order WHERE rad_tr3_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND rad_tr3_dat <= DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')) "_
 				") "_
 				") "_
 				"ORDER BY ENTITY_DATE "_

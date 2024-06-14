@@ -9,17 +9,17 @@ ClassMethod GetPatientByPat() As %String
 					"PAT_MOT, "_
 					"PAT_ALI, "_
 					"PAT_REL_COD, "_
-					"trim(pat_rel_dsc) as PAT_REL_DSC, "_
+					"PAT_REL_DSC, "_
 					"PAT_GEN, "_
 					"PAT_CIV_COD, "_
-					"trim(pat_civ_dsc) as PAT_CIV_DSC, "_
+					"PAT_CIV_DSC, "_
 					"PAT_RAC_COD, "_
-					"trim(pat_rac_dsc) as PAT_RAC_DSC, "_
+					"PAT_RAC_DSC, "_
 					"PAT_FAT, "_
 					"PAT_CPL, "_
 					"PAT_BIR_DAT, "_
 					"PAT_NTL_COD, "_
-					"trim(pat_ntl_dsc) as PAT_NTL_DSC, "_
+					"PAT_NTL_DSC, "_
 					"PAT_NID, "_
 					"PAT_SSN, "_
 					"PAT_DL, "_
@@ -39,7 +39,7 @@ ClassMethod GetPatientByPat() As %String
 					"PAT_EMA, "_
 					"PAT_DTH_DAT, "_
 					"PAT_DTH_LOC "_
-				"FROM hs_patient  "_
+				"FROM HS_PATIENT  "_
 				"WHERE PAT_PK = ? "
 
 	Quit tSQL
@@ -77,43 +77,19 @@ ClassMethod TriggerPATByDate() As %String
 	Quit tSQL
 }
 
-ClassMethod TriggerMRGByDate() As %String
-{
-	Set tSQL = "SELECT PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || TO_CHAR(ENTITY_DATE, 'YYYY-MM-DD HH24:MI:SS') INFO_ID, ENTITY_ID, PATIENT_ID, ENCOUNTER_ID, ENTITY_TYPE, ENTITY_DATE FROM ( "_ 
-				"SELECT * FROM ( "_ 
-				"/* Fusão Paciente */ "_ 
-				"SELECT "_ 
-				"TO_CHAR(h.MRN_ANTERIOR) ENTITY_ID, "_ 
-				"TO_CHAR(h.MRN_ATUAL) PATIENT_ID, "_ 
-				"NULL ENCOUNTER_ID, "_ 
-				"'MRG' ENTITY_TYPE, "_ 
-				"LEAST(SYSDATE, GREATEST(NVL(h.DATA, SYSDATE-1000))) ENTITY_DATE "_ 
-				"FROM DBAMV.GNDI_PAC_HISTORICO_MV h "_
-				"INNER JOIN DBAMV.GNDI_PACIENTE_MV p ON p.COD_PK_PACIENTE = h.MRN_ATUAL "_ 
-				"WHERE ((h.DATA > TO_DATE(?,'YYYY-MM-DD HH24:MI:SS') AND h.DATA <= SYSDATE)) "_ 
-				") "_ 
-				"ORDER BY ENTITY_DATE) "_ 
-				"WHERE ROWNUM <= ? "
-				
-	Quit tSQL
-}
-
 ClassMethod TriggerByPat() As %String
 {
 	Set tSQL = "SELECT PATIENT_ID INFO_ID, ENTITY_ID, PATIENT_ID, ENCOUNTER_ID, ENTITY_TYPE, ENTITY_DATE FROM ( "_
 				" "_ 
 				"/* Patient */ "_
-				"select "_
-				"'' ENTITY_ID, "_
-				"pat_pk PATIENT_ID, "_
+				"SELECT "_
+				"NULL ENTITY_ID, "_
+				"PAT_PK PATIENT_ID, "_
 				"NULL ENCOUNTER_ID, "_
-				;"'PAT,ENC,DXG,DOC,OBS,PRC,SOC,ILL,FAM,RAD,LAB,OTH,MED' ENTITY_TYPE, "_
-				;"'PAT,ENC,APT' ENTITY_TYPE, "_
-				;"'PAT,ENC,ILL,FAM,SOC,MED,LAB,RAD,OTH,APT' ENTITY_TYPE, "_
-				"'PAT,ENC,RAD,LAB,OBS' ENTITY_TYPE, "_
+				"'PAT' ENTITY_TYPE, "_
 				"SYSDATE ENTITY_DATE "_
-				"FROM hs_patient "_
-				"WHERE pat_pk = ? "_
+				"FROM HS_PATIENT "_
+				"WHERE PAT_PK = ? "_
 				") "
 				
 	Quit tSQL

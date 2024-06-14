@@ -3,7 +3,6 @@ Class Custom.EHRInterop.DSP.View.IllnessHistory Extends %RegisteredObject
 
 ClassMethod GetIllnessHistoriesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK As %Boolean) As %String
 {
-	//TODO: Remplazar los subselects por JOIN cuando los indexes estuvieren OK
     Set tSQL =	"SELECT "_
                     "ILL_PK, "_
                     "ILL_PAT_FK, "_
@@ -19,8 +18,8 @@ ClassMethod GetIllnessHistoriesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhe
                     "ILL_DAT, "_
                     "ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-                "FROM hs_illness_history "_
-				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = ILL_ENC_FK "_
+                "FROM HS_ILLNESS_HISTORY "_
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = ILL_ENC_FK "_
 				"WHERE ILL_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND ILL_ENC_FK = ? "

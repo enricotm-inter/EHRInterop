@@ -23,8 +23,8 @@ ClassMethod GetLabOrdersByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 					"LAB_RES_NAM, "_
 					"ENC_FAC_COD, "_
 					"ENC_FAC_DSC "_
-				"FROM hs_lab_order "_
-				"LEFT JOIN hs_encounter enc ON enc.ENC_PK = LAB_ENC_FK "_
+				"FROM HS_LAB_ORDER "_
+				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = LAB_ENC_FK "_
 				"WHERE LAB_PAT_FK = ? "
 				
 	Set:pIncludeWhereByEnc tSQL = tSQL_"AND LAB_ENC_FK = ? "
@@ -60,41 +60,6 @@ ClassMethod TriggerLABByDate() As %String
 				"SELECT lab_pk, lab_pat_fk, lab_enc_fk, lab_tr1_dat, lab_tr2_dat, lab_tr3_dat FROM hs_lab_order WHERE lab_tr2_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND lab_tr2_dat <= NOW() "_
 				"UNION "_
 				"SELECT lab_pk, lab_pat_fk, lab_enc_fk, lab_tr1_dat, lab_tr2_dat, lab_tr3_dat FROM hs_lab_order WHERE lab_tr3_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND lab_tr3_dat <= NOW() "_
-				") "_
-				") "_
-				"ORDER BY ENTITY_DATE "_
-				") "
-				
-	Quit tSQL
-}
-
-ClassMethod TriggerLABByDateDaily() As %String
-{
-	Set tSQL = "SELECT "_
-				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
-				"ENTITY_ID, "_
-				"PATIENT_ID, "_
-				"ENCOUNTER_ID, "_
-				"ENTITY_TYPE, "_
-				"ENTITY_DATE FROM ( "_
-				"SELECT * FROM ( "_
-				"/* Lab Order */ "_
-				"SELECT "_
-				"lab_pk ENTITY_ID, "_
-				"lab_pat_fk PATIENT_ID, "_
-				"lab_enc_fk ENCOUNTER_ID, "_
-				"'PAT,ENC,LAB' ENTITY_TYPE, "_
-				"LEAST(DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')), GREATEST( "_
-				"NVL(lab_tr1_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')), "_
-				"NVL(lab_tr2_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')), "_
-				"NVL(lab_tr3_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')) "_
-				")) ENTITY_DATE "_
-				"FROM ( "_
-				"SELECT lab_pk, lab_pat_fk, lab_enc_fk, lab_tr1_dat, lab_tr2_dat, lab_tr3_dat FROM hs_lab_order WHERE lab_tr1_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND lab_tr1_dat <= DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')) "_
-				"UNION "_
-				"SELECT lab_pk, lab_pat_fk, lab_enc_fk, lab_tr1_dat, lab_tr2_dat, lab_tr3_dat FROM hs_lab_order WHERE lab_tr2_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND lab_tr2_dat <= DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')) "_
-				"UNION "_
-				"SELECT lab_pk, lab_pat_fk, lab_enc_fk, lab_tr1_dat, lab_tr2_dat, lab_tr3_dat FROM hs_lab_order WHERE lab_tr3_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND lab_tr3_dat <= DATEADD('day', 10, TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS')) "_
 				") "_
 				") "_
 				"ORDER BY ENTITY_DATE "_
