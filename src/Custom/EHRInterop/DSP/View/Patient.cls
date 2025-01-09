@@ -3,46 +3,53 @@ Class Custom.EHRInterop.DSP.View.Patient Extends %RegisteredObject
 
 ClassMethod GetPatientByPat() As %String
 {
-    Set tSQL =	"SELECT "_
-					"PAT_PK, "_
-					"PAT_NAM, "_
-					"PAT_MOT, "_
-					"PAT_ALI, "_
-					"PAT_REL_COD, "_
-					"PAT_REL_DSC, "_
-					"PAT_GEN, "_
-					"PAT_CIV_COD, "_
-					"PAT_CIV_DSC, "_
-					"PAT_RAC_COD, "_
-					"PAT_RAC_DSC, "_
-					"PAT_FAT, "_
-					"PAT_CPL, "_
-					"PAT_BIR_DAT, "_
-					"PAT_NTL_COD, "_
-					"PAT_NTL_DSC, "_
-					"PAT_NID, "_
-					"PAT_SSN, "_
-					"PAT_DL, "_
-					"PAT_DL_UF, "_
-					"PAT_ADR_STR, "_
-					"PAT_ADR_NUM, "_
-					"PAT_ADR_CPL, "_
-					"PAT_ADR_CIT, "_
-					"PAT_ADR_PRV, "_
-					"PAT_ADR_CTR, "_
-					"PAT_ADR_UF_COD, "_
-					"PAT_ADR_UF_DSC, "_
-					"PAT_ADR_ZIP, "_
-					"PAT_TEL_RES, "_
-					"PAT_TEL_COM, "_
-					"PAT_TEL_MOB, "_
-					"PAT_EMA, "_
-					"PAT_DTH_DAT, "_
-					"PAT_DTH_LOC "_
-				"FROM HS_PATIENT  "_
-				"WHERE PAT_PK = ? "
-
+	Set tQueryID = $CLASSNAME()_"||QueryPatientByPat"
+	Set tQueryXData = ##class(%Dictionary.CompiledXData).%OpenId(tQueryID)
+	Set tSQL = tQueryXData.Data.Read()
+   
 	Quit tSQL
+}
+
+XData QueryPatientByPat [ MimeType = application/sql ]
+{
+	SELECT
+		PAT_PK,
+		PAT_NAM,
+		PAT_MOT,
+		PAT_ALI,
+		PAT_REL_COD,
+		PAT_REL_DSC,
+		PAT_GEN,
+		PAT_CIV_COD,
+		PAT_CIV_DSC,
+		PAT_RAC_COD,
+		PAT_RAC_DSC,
+		PAT_FAT,
+		PAT_CPL,
+		PAT_BIR_DAT,
+		PAT_NTL_COD,
+		PAT_NTL_DSC,
+		PAT_NID,
+		PAT_SSN,
+		PAT_DL,
+		PAT_DL_UF,
+		PAT_ADR_STR,
+		PAT_ADR_NUM,
+		PAT_ADR_CPL,
+		PAT_ADR_CIT,
+		PAT_ADR_PRV,
+		PAT_ADR_CTR,
+		PAT_ADR_UF_COD,
+		PAT_ADR_UF_DSC,
+		PAT_ADR_ZIP,
+		PAT_TEL_RES,
+		PAT_TEL_COM,
+		PAT_TEL_MOB,
+		PAT_EMA,
+		PAT_DTH_DAT,
+		PAT_DTH_LOC
+	FROM HS_PATIENT 
+	WHERE PAT_PK = ?
 }
 
 ClassMethod TriggerPATByDate() As %String

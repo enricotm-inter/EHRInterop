@@ -3,30 +3,37 @@ Class Custom.EHRInterop.DSP.View.Encounter Extends %RegisteredObject
 
 ClassMethod GetEncountersByPat(pIncludeWhereByPK As %Boolean) As %String
 {
-    Set tSQL =	"SELECT "_
-					"ENC_PK, "_
-					"ENC_PAT_FK, "_
-					"ENC_ADM_DAT, "_
-					"ENC_TYP, "_
-					"ENC_FAC_COD, "_
-					"ENC_FAC_DSC, "_
-					"ENC_INS_COD, "_
-					"ENC_INS_DSC, "_
-					"ENC_SPE_COD, "_
-					"ENC_SPE_DSC, "_
-					"ENC_DIS_DAT, "_
-					"ENC_WRD, "_
-					"ENC_BED, "_
-					"ENC_CLI_COD, "_
-					"ENC_CLI_CONS_COD, "_
-					"ENC_CLI_CONS_DSC, "_
-					"ENC_CLI_NAM "_
-				"FROM HS_ENCOUNTER "_
-				"WHERE ENC_PAT_FK = ? "
+    Set tQueryID = $CLASSNAME()_"||QueryEncounterByPat"
+	Set tQueryXData = ##class(%Dictionary.CompiledXData).%OpenId(tQueryID)
+	Set tSQL = tQueryXData.Data.Read()
 				
 	Set:pIncludeWhereByPK tSQL = tSQL_"AND ENC_PK = ? "
 	
 	Quit tSQL
+}
+
+XData QueryEncounterByPat [ MimeType = application/sql ]
+{
+	SELECT
+		ENC_PK,
+		ENC_PAT_FK,
+		ENC_ADM_DAT,
+		ENC_TYP,
+		ENC_FAC_COD,
+		ENC_FAC_DSC,
+		ENC_INS_COD,
+		ENC_INS_DSC,
+		ENC_SPE_COD,
+		ENC_SPE_DSC,
+		ENC_DIS_DAT,
+		ENC_WRD,
+		ENC_BED,
+		ENC_CLI_COD,
+		ENC_CLI_CONS_COD,
+		ENC_CLI_CONS_DSC,
+		ENC_CLI_NAM
+	FROM HS_ENCOUNTER
+	WHERE ENC_PAT_FK = ?
 }
 
 ClassMethod TriggerENCByDate() As %String

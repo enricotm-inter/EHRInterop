@@ -9,11 +9,11 @@ Parameter INVOCATION = "Queue";
 
 Property SendingFacility As %String [ Required ];
 
-Property SOAPHost As Ens.DataType.ConfigName;
+Property SDATargetConfigName As Ens.DataType.ConfigName;
 
 Property CodingStandard As %String [ Required ];
 
-Parameter SETTINGS = "SendingFacility:Data,CodingStandard:Data,SOAPHost:Data";
+Parameter SETTINGS = "SendingFacility:Data,CodingStandard:Data,SDATargetConfigName:Data:selector?multiSelect=1&context={Ens.ContextSearch/ProductionItems?targets=1&productionName=@productionId}";
 
 Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Output pResponse As Ens.Response) As %Status
 {
@@ -32,15 +32,20 @@ Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Outpu
 	Set tSendingFacility = ..SendingFacility
 	Set tCodFacility = tSendingFacility
 	Set tFacility = tSendingFacility
-	Set tAction = "AddOrUpdate"
+	Set tAction = $ZSTRIP($ZSTRIP(pRequest.Action, "<>W"), "*C")
+	Set tEventDescription = $ZSTRIP($ZSTRIP(pRequest.EventDescription, "<>W"), "*C")
 	Set:($LISTFIND(tEntityTypes,"MRG") > 0) tAction = "Merge"
 	Set tCodingStandard = ..CodingStandard
 	Set tFilterByEnc = (tEncounterID '= "")
 	Set tFilterByPK = (tEntityID '= "")
 
-	// EHRInterop parameters validation
+	// EHRInterop params/transaction validation
+	$$$TRACE("SDATargetConfigName: "_..SDATargetConfigName)
+	If (..SDATargetConfigName = "") {
+		Set tSC=$$$ERROR($$$EnsErrGeneral,"SDATargetConfigName cannot be NULL")
+	}
 	If (tPatientID = "") {
-		Set tSC=$$$ERROR($$$EnsErrGeneral,"PatientID can not be NULL")
+		Set tSC=$$$ERROR($$$EnsErrGeneral,"PatientID cannot be NULL")
 	}
 	ElseIf ('$LISTFIND(tEntityTypes, "PAT")) {
 		Set tSC=$$$ERROR($$$EnsErrGeneral,"'PAT' must be in EntityType")
@@ -75,8 +80,8 @@ Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Outpu
 	If ($LISTFIND(tEntityTypes,"APT") > 0) { Set tSC = ..EntityAppointments(.tSDAContainer,tFilterByEnc,tFilterByPK,tPatientID,tEncounterID,tEntityID,tCodingStandard) }
 	If ($LISTFIND(tEntityTypes,"ALT") > 0) { Set tSC = ..EntityAlerts(.tSDAContainer,tFilterByEnc,tFilterByPK,tPatientID,tEncounterID,tEntityID,tCodingStandard) }
 	
-	//Sending it to HealthShare
-	Set tSC = ..SendToHS(tSendingFacility, tSDAContainer, pRequest.PatientID, pRequest.EncounterID, pRequest.EntityID, pRequest.EntityType)
+	//Sending it to SDA Targets
+	Set tSC = ..SendToSDATarget(tSendingFacility, tSDAContainer, pRequest.PatientID, pRequest.EncounterID, pRequest.EntityID, pRequest.EntityType)
 	$$$ThrowOnError(tSC)
 	
 	Quit $$$OK
@@ -110,12 +115,12 @@ Method EntityPatient(ByRef pSDAContainer As HS.SDA3.Container, pPatientID As %St
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("PAT Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("PAT", "Fetch") = $GET(^tMZ("PAT", "Fetch"))+tFetchDur
-	Set ^tMZ("PAT", "Iterate") = $GET(^tMZ("PAT", "Iterate"))+tIterateDur
-	Set ^tMZ("PAT", "Count") = $GET(^tMZ("PAT", "Count"))+tI
+	//Set ^tEHRInteropDebug("PAT", "Fetch") = $GET(^tEHRInteropDebug("PAT", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("PAT", "Iterate") = $GET(^tEHRInteropDebug("PAT", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("PAT", "Count") = $GET(^tEHRInteropDebug("PAT", "Count"))+tI
 	
 	Quit tSC
 }
@@ -151,12 +156,12 @@ Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("ENC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("ENC", "Fetch") = $GET(^tMZ("ENC", "Fetch"))+tFetchDur
-	Set ^tMZ("ENC", "Iterate") = $GET(^tMZ("ENC", "Iterate"))+tIterateDur
-	Set ^tMZ("ENC", "Count") = $GET(^tMZ("ENC", "Count"))+tI
+	//Set ^tEHRInteropDebug("ENC", "Fetch") = $GET(^tEHRInteropDebug("ENC", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("ENC", "Iterate") = $GET(^tEHRInteropDebug("ENC", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("ENC", "Count") = $GET(^tEHRInteropDebug("ENC", "Count"))+tI
 	
 	Quit tSC
 }
@@ -188,12 +193,12 @@ Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("DXG Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("DXG", "Fetch") = $GET(^tMZ("DXG", "Fetch"))+tFetchDur
-	Set ^tMZ("DXG", "Iterate") = $GET(^tMZ("DXG", "Iterate"))+tIterateDur
-	Set ^tMZ("DXG", "Count") = $GET(^tMZ("DXG", "Count"))+tI
+	//Set ^tEHRInteropDebug("DXG", "Fetch") = $GET(^tEHRInteropDebug("DXG", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("DXG", "Iterate") = $GET(^tEHRInteropDebug("DXG", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("DXG", "Count") = $GET(^tEHRInteropDebug("DXG", "Count"))+tI
 	
 	Quit tSC
 }
@@ -225,12 +230,12 @@ Method EntityDocuments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("DOC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("DOC", "Fetch") = $GET(^tMZ("DOC", "Fetch"))+tFetchDur
-	Set ^tMZ("DOC", "Iterate") = $GET(^tMZ("DOC", "Iterate"))+tIterateDur
-	Set ^tMZ("DOC", "Count") = $GET(^tMZ("DOC", "Count"))+tI
+	//Set ^tEHRInteropDebug("DOC", "Fetch") = $GET(^tEHRInteropDebug("DOC", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("DOC", "Iterate") = $GET(^tEHRInteropDebug("DOC", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("DOC", "Count") = $GET(^tEHRInteropDebug("DOC", "Count"))+tI
 	
 	Quit tSC
 }
@@ -262,12 +267,12 @@ Method EntityObservations(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("OBS Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("OBS", "Fetch") = $GET(^tMZ("OBS", "Fetch"))+tFetchDur
-	Set ^tMZ("OBS", "Iterate") = $GET(^tMZ("OBS", "Iterate"))+tIterateDur
-	Set ^tMZ("OBS", "Count") = $GET(^tMZ("OBS", "Count"))+tI
+	//Set ^tEHRInteropDebug("OBS", "Fetch") = $GET(^tEHRInteropDebug("OBS", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("OBS", "Iterate") = $GET(^tEHRInteropDebug("OBS", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("OBS", "Count") = $GET(^tEHRInteropDebug("OBS", "Count"))+tI
 	
 	Quit tSC
 }
@@ -299,12 +304,12 @@ Method EntityProcedures(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("PRC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("PRC", "Fetch") = $GET(^tMZ("PRC", "Fetch"))+tFetchDur
-	Set ^tMZ("PRC", "Iterate") = $GET(^tMZ("PRC", "Iterate"))+tIterateDur
-	Set ^tMZ("PRC", "Count") = $GET(^tMZ("PRC", "Count"))+tI
+	//Set ^tEHRInteropDebug("PRC", "Fetch") = $GET(^tEHRInteropDebug("PRC", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("PRC", "Iterate") = $GET(^tEHRInteropDebug("PRC", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("PRC", "Count") = $GET(^tEHRInteropDebug("PRC", "Count"))+tI
 	
 	Quit tSC
 }
@@ -336,12 +341,12 @@ Method EntitySocialHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterBy
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("SOC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("SOC", "Fetch") = $GET(^tMZ("SOC", "Fetch"))+tFetchDur
-	Set ^tMZ("SOC", "Iterate") = $GET(^tMZ("SOC", "Iterate"))+tIterateDur
-	Set ^tMZ("SOC", "Count") = $GET(^tMZ("SOC", "Count"))+tI
+	//Set ^tEHRInteropDebug("SOC", "Fetch") = $GET(^tEHRInteropDebug("SOC", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("SOC", "Iterate") = $GET(^tEHRInteropDebug("SOC", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("SOC", "Count") = $GET(^tEHRInteropDebug("SOC", "Count"))+tI
 	
 	Quit tSC
 }
@@ -373,12 +378,12 @@ Method EntityIllnessHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterB
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("ILL Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("ILL", "Fetch") = $GET(^tMZ("ILL", "Fetch"))+tFetchDur
-	Set ^tMZ("ILL", "Iterate") = $GET(^tMZ("ILL", "Iterate"))+tIterateDur
-	Set ^tMZ("ILL", "Count") = $GET(^tMZ("ILL", "Count"))+tI
+	//Set ^tEHRInteropDebug("ILL", "Fetch") = $GET(^tEHRInteropDebug("ILL", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("ILL", "Iterate") = $GET(^tEHRInteropDebug("ILL", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("ILL", "Count") = $GET(^tEHRInteropDebug("ILL", "Count"))+tI
 	
 	Quit tSC
 }
@@ -410,12 +415,12 @@ Method EntityFamilyHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterBy
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("FAM Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("FAM", "Fetch") = $GET(^tMZ("FAM", "Fetch"))+tFetchDur
-	Set ^tMZ("FAM", "Iterate") = $GET(^tMZ("FAM", "Iterate"))+tIterateDur
-	Set ^tMZ("FAM", "Count") = $GET(^tMZ("FAM", "Count"))+tI
+	//Set ^tEHRInteropDebug("FAM", "Fetch") = $GET(^tEHRInteropDebug("FAM", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("FAM", "Iterate") = $GET(^tEHRInteropDebug("FAM", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("FAM", "Count") = $GET(^tEHRInteropDebug("FAM", "Count"))+tI
 	
 	Quit tSC
 }
@@ -447,12 +452,12 @@ Method EntityRadOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("RAD Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("RAD", "Fetch") = $GET(^tMZ("RAD", "Fetch"))+tFetchDur
-	Set ^tMZ("RAD", "Iterate") = $GET(^tMZ("RAD", "Iterate"))+tIterateDur
-	Set ^tMZ("RAD", "Count") = $GET(^tMZ("RAD", "Count"))+tI
+	//Set ^tEHRInteropDebug("RAD", "Fetch") = $GET(^tEHRInteropDebug("RAD", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("RAD", "Iterate") = $GET(^tEHRInteropDebug("RAD", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("RAD", "Count") = $GET(^tEHRInteropDebug("RAD", "Count"))+tI
 	
 	Quit tSC
 }
@@ -484,12 +489,12 @@ Method EntityLabOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("LAB Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("LAB", "Fetch") = $GET(^tMZ("LAB", "Fetch"))+tFetchDur
-	Set ^tMZ("LAB", "Iterate") = $GET(^tMZ("LAB", "Iterate"))+tIterateDur
-	Set ^tMZ("LAB", "Count") = $GET(^tMZ("LAB", "Count"))+tI
+	//Set ^tEHRInteropDebug("LAB", "Fetch") = $GET(^tEHRInteropDebug("LAB", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("LAB", "Iterate") = $GET(^tEHRInteropDebug("LAB", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("LAB", "Count") = $GET(^tEHRInteropDebug("LAB", "Count"))+tI
 		
 	Quit tSC
 }
@@ -521,12 +526,12 @@ Method EntityOtherOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc 
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("OTH Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("OTH", "Fetch") = $GET(^tMZ("OTH", "Fetch"))+tFetchDur
-	Set ^tMZ("OTH", "Iterate") = $GET(^tMZ("OTH", "Iterate"))+tIterateDur
-	Set ^tMZ("OTH", "Count") = $GET(^tMZ("OTH", "Count"))+tI
+	//Set ^tEHRInteropDebug("OTH", "Fetch") = $GET(^tEHRInteropDebug("OTH", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("OTH", "Iterate") = $GET(^tEHRInteropDebug("OTH", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("OTH", "Count") = $GET(^tEHRInteropDebug("OTH", "Count"))+tI
 		
 	Quit tSC
 }
@@ -558,12 +563,12 @@ Method EntityMedications(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc 
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("MED Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("MED", "Fetch") = $GET(^tMZ("MED", "Fetch"))+tFetchDur
-	Set ^tMZ("MED", "Iterate") = $GET(^tMZ("MED", "Iterate"))+tIterateDur
-	Set ^tMZ("MED", "Count") = $GET(^tMZ("MED", "Count"))+tI
+	//Set ^tEHRInteropDebug("MED", "Fetch") = $GET(^tEHRInteropDebug("MED", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("MED", "Iterate") = $GET(^tEHRInteropDebug("MED", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("MED", "Count") = $GET(^tEHRInteropDebug("MED", "Count"))+tI
 		
 	Quit tSC
 }
@@ -595,12 +600,12 @@ Method EntityAppointments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("APT Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("APT", "Fetch") = $GET(^tMZ("APT", "Fetch"))+tFetchDur
-	Set ^tMZ("APT", "Iterate") = $GET(^tMZ("APT", "Iterate"))+tIterateDur
-	Set ^tMZ("APT", "Count") = $GET(^tMZ("APT", "Count"))+tI
+	//Set ^tEHRInteropDebug("APT", "Fetch") = $GET(^tEHRInteropDebug("APT", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("APT", "Iterate") = $GET(^tEHRInteropDebug("APT", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("APT", "Count") = $GET(^tEHRInteropDebug("APT", "Count"))+tI
 		
 	Quit tSC
 }
@@ -632,29 +637,31 @@ Method EntityAlerts(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %S
 	
 	Set tDT3 = $NOW()
 	
-	Set tFetchDur = $SYSTEM.SQL.DATEDIFF("ms",tDT1,tDT2)
-	Set tIterateDur = $SYSTEM.SQL.DATEDIFF("ms",tDT2,tDT3)
+	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
+	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 	$$$TRACE("ALT Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	Set ^tMZ("ALT", "Fetch") = $GET(^tMZ("ALT", "Fetch"))+tFetchDur
-	Set ^tMZ("ALT", "Iterate") = $GET(^tMZ("ALT", "Iterate"))+tIterateDur
-	Set ^tMZ("ALT", "Count") = $GET(^tMZ("ALT", "Count"))+tI
+	//Set ^tEHRInteropDebug("ALT", "Fetch") = $GET(^tEHRInteropDebug("ALT", "Fetch"))+tFetchDur
+	//Set ^tEHRInteropDebug("ALT", "Iterate") = $GET(^tEHRInteropDebug("ALT", "Iterate"))+tIterateDur
+	//Set ^tEHRInteropDebug("ALT", "Count") = $GET(^tEHRInteropDebug("ALT", "Count"))+tI
 	
 	Quit tSC
 }
 
-Method SendToHS(pSendingFacility As %String, pSDAContainer As HS.SDA3.Container, pMRN As %String, pEncounter As %String, pEntityID As %String, pEntityType As %String) As %Status
+Method SendToSDATarget(pSendingFacility As %String, pSDAContainer As HS.SDA3.Container, pMRN As %String, pEncounter As %String, pEntityID As %String, pEntityType As %String) As %Status
 {
 	Set tSC = $$$OK
 	
 	Set tSDAXML = ##Class(%Stream.FileCharacter).%New()
 	Set tSDAXML.TranslateTable = "UTF8"
 	Set tSC = pSDAContainer.ToQuickXMLStream(.tSDAXML)
-	$$$LOGINFO("tSDAXML Size: "_tSDAXML.Size) // Can be Removed;
+	$$$TRACE("tSDAXML Size: "_tSDAXML.Size)
 	If $$$ISERR(tSC) Quit tSC
 	
-	//Sending to HS by SOAP
-	If (..SOAPHost '= "")
+	//Sending to N targets
+	For i=1:1:$Length(..SDATargetConfigName, ",")
 	{
+		Set tSDATarget = $Piece(..SDATargetConfigName,",",i)
+		$$$TRACE("Sending to target: "_tSDATarget)
 		Set tRequest = ##class(Custom.EHRInterop.Core.Operation.SOAP.Operation.Request.SaveSDARequest).%New()
 
 		Set tRequest.pRequest.InfoID = $ZSTRIP(pSendingFacility_"_"_pMRN_"_"_pEncounter_"_"_pEntityID_"_"_pEntityType, "*C")
@@ -663,20 +670,18 @@ Method SendToHS(pSendingFacility As %String, pSDAContainer As HS.SDA3.Container,
 		Set tRequest.pRequest.ContentStream = tSDAXML
 		
 		Set tResponse = ##Class(Custom.EHRInterop.Core.Operation.SOAP.Operation.Response.SaveSDAResponse).%New()
-		Set tSC = ..SendRequestSync(..SOAPHost, tRequest, .tResponse)
+		Set tSC = ..SendRequestSync(tSDATarget, tRequest, .tResponse)
 		
-		If $$$ISERR(tSC) Quit tSC
+		If $$$ISERR(tSC)
 		
 		If ('$ISOBJECT(tResponse))
 		{
 			Set tSC=$$$ERROR($$$EnsErrGeneral,"Response Null")
-			Quit tSC
 		}
 		
 		If ('tResponse.SaveSDAResult.Success)
 		{
 			Set tSC=$$$ERROR($$$EnsErrGeneral,"Execution error in EDGE process")
-			Quit tSC
 		}
 	}
 	

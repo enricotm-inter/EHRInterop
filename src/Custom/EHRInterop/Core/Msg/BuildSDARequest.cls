@@ -9,6 +9,12 @@ Property EncounterID As %String;
 
 Property EntityType As %String(MAXLEN = 100);
 
+Property EventDescription As %String(MAXLEN = 100);
+
+Property Action As %String(MAXLEN = 100, VALUELIST = ",AddOrUpdate,DeletePatient") [ InitialExpression = "AddOrUpdate", Required ];
+
+Property EntityHash As %String(MAXLEN = 100);
+
 Property EntityDate As %DateTime;
 
 Index EHRIBldSDAReqEtID On EntityID;
@@ -17,7 +23,13 @@ Index EHRBldSDAReqPatID On PatientID;
 
 Index EHRBldSDAReqEncID On EncounterID;
 
-Index EHRBldSDAReqEncTp On EntityType;
+Index EHRBldSDAReqEntTp On EntityType;
+
+Index EHRBldSDAReqEvnDc On EventDescription;
+
+Index EHRBldSDAReqAct On Action;
+
+Index EHRIBldSDAReqEtHs On EntityHash;
 
 Index EHRBldSDAReqEncDt On EntityDate;
 
@@ -38,6 +50,15 @@ Storage Default
 <Value>EntityType</Value>
 </Value>
 <Value name="5">
+<Value>EventDescription</Value>
+</Value>
+<Value name="6">
+<Value>Action</Value>
+</Value>
+<Value name="7">
+<Value>EntityHash</Value>
+</Value>
+<Value name="8">
 <Value>EntityDate</Value>
 </Value>
 </Data>
