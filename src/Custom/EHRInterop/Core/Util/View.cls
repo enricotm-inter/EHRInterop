@@ -1,10 +1,6 @@
 Class Custom.EHRInterop.Core.Util.View Extends %RegisteredObject
 {
 
-Parameter FilterByEncFKComment = "/** ";
-
-Parameter FilterByPKComment = "/*** ";
-
 ClassMethod GetXDataQuery(pObj As %RegisteredObject, pQueryName As %String) As %String
 {
 	Set tQueryID = $CLASSNAME(pObj)_"||"_pQueryName
@@ -16,12 +12,18 @@ ClassMethod GetXDataQuery(pObj As %RegisteredObject, pQueryName As %String) As %
 
 ClassMethod IncludeWhereByEnc(pSQL As %String) As %String
 {
-	Quit $Replace(pSQL, ..#FilterByEncFKComment, "")
+	//WhereByEnc template:
+	// "/*& --AND XYZ_ENC_FK = ? &*/"
+
+	Quit $Replace($Replace(pSQL, "/*& --", ""), "&*/", "")
 }
 
 ClassMethod IncludeWhereByPK(pSQL As %String) As %String
 {
-	Quit $Replace(pSQL, ..#FilterByPKComment, "")
+	//WhereByPK template:
+	// "/*% --AND XYZ_PK = ? %*/"
+
+	Quit $Replace($Replace(pSQL, "/*% --", ""), "%*/", "")
 }
 
 }

@@ -36,7 +36,7 @@ XData GetEncountersByPat [ MimeType = application/sql ]
 		ENC_CLI_NAM
 	FROM HS_ENCOUNTER
 	WHERE ENC_PAT_FK = ?
-	/*** AND ENC_PK = ? ***/
+	/*% --AND ENC_PK = ? %*/
 }
 
 XData TriggerENCByDate [ MimeType = application/sql ]
