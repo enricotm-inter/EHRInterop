@@ -1,25 +1,18 @@
-Class Custom.EHRInterop.DSP.View.Diagnosis Extends %RegisteredObject
+Class Custom.EHRInterop.DSP.View.Diagnosis Extends Custom.EHRInterop.Core.Util.View
 {
 
 ClassMethod GetDiagnosesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK As %Boolean) As %String
 {
-    Set tQueryID = $CLASSNAME()_"||GetDiagnosesByPat"
-	Set tQueryXData = ##class(%Dictionary.CompiledXData).%OpenId(tQueryID)
-	Set tSQL = tQueryXData.Data.Read()
-				
-	Set:pIncludeWhereByEnc tSQL = tSQL_"AND DXG_ENC_FK = ? "
-	Set:pIncludeWhereByPK tSQL = tSQL_"AND DXG_PK = ? "
+	Set tSQL = ..GetXDataQuery($this, "GetDiagnosesByPat")
+	Set:pIncludeWhereByEnc tSQL = ..IncludeWhereByEnc(tSQL)
+	Set:pIncludeWhereByPK tSQL = ..IncludeWhereByPK(tSQL)
 
 	Quit tSQL
 }
 
 ClassMethod TriggerDXGByDate() As %String
 {
-	Set tQueryID = $CLASSNAME()_"||TriggerDXGByDate"
-	Set tQueryXData = ##class(%Dictionary.CompiledXData).%OpenId(tQueryID)
-	Set tSQL = tQueryXData.Data.Read()
-				
-	Quit tSQL
+	Quit ..GetXDataQuery($this, "TriggerDXGByDate")
 }
 
 XData GetDiagnosesByPat [ MimeType = application/sql ]
@@ -46,8 +39,10 @@ XData GetDiagnosesByPat [ MimeType = application/sql ]
 		ENC_FAC_COD,
 		ENC_FAC_DSC
 	FROM HS_DIAGNOSIS
-	LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = DXG_ENC_FK
+	LEFT JOIN HS_ENCOUNTER E ON E.ENC_PK = DXG_ENC_FK
 	WHERE DXG_PAT_FK = ?
+	/** AND DXG_ENC_FK = ? **/
+	/*** AND DXG_PK = ? ***/
 }
 
 XData TriggerDXGByDate [ MimeType = application/sql ]
@@ -63,20 +58,20 @@ XData TriggerDXGByDate [ MimeType = application/sql ]
 		SELECT TOP ? * FROM (
 			/* Diagnosis */
 			SELECT
-				dxg_pk ENTITY_ID,
-				dxg_pat_fk PATIENT_ID,
-				dxg_enc_fk ENCOUNTER_ID,
+				DXG_PK ENTITY_ID,
+				DXG_PAT_FK PATIENT_ID,
+				DXG_ENC_FK ENCOUNTER_ID,
 				'PAT,ENC,DXG' ENTITY_TYPE,
 				LEAST(NOW(), GREATEST(
-					NVL(dxg_tr1_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')),
-					NVL(dxg_tr2_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')),
-					NVL(dxg_tr3_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS'))
+					NVL(DXG_TR1_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')),
+					NVL(DXG_TR2_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')),
+					NVL(DXG_TR3_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS'))
 				)) ENTITY_DATE
-			FROM hs_diagnosis
+			FROM HS_DIAGNOSIS
 			WHERE (1=0
-				OR (dxg_tr1_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND dxg_tr1_dat <= NOW())
-				OR (dxg_tr2_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND dxg_tr2_dat <= NOW())
-				OR (dxg_tr3_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND dxg_tr3_dat <= NOW())
+				OR (DXG_TR1_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND DXG_TR1_DAT <= NOW())
+				OR (DXG_TR2_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND DXG_TR2_DAT <= NOW())
+				OR (DXG_TR3_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND DXG_TR3_DAT <= NOW())
 			)
 		)
 		ORDER BY ENTITY_DATE

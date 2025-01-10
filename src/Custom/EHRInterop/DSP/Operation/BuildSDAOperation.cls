@@ -13,7 +13,13 @@ Property SDATargetConfigName As Ens.DataType.ConfigName;
 
 Property CodingStandard As %String [ Required ];
 
-Parameter SETTINGS = "SendingFacility:Data,CodingStandard:Data,SDATargetConfigName:Data:selector?multiSelect=1&context={Ens.ContextSearch/ProductionItems?targets=1&productionName=@productionId}";
+Property TraceSQLQueries As %Boolean;
+
+Property TraceQueryExecTimes As %Boolean;
+
+Property TrackQueryExecTimes As %Boolean;
+
+Parameter SETTINGS = "SendingFacility:Data,CodingStandard:Data,SDATargetConfigName:Data:selector?multiSelect=1&context={Ens.ContextSearch/ProductionItems?targets=1&productionName=@productionId},TraceSQLQueries:Tracing,TraceQueryExecTimes:Tracing,TrackQueryExecTimes:Tracing";
 
 Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Output pResponse As Ens.Response) As %Status
 {
@@ -40,7 +46,6 @@ Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Outpu
 	Set tFilterByPK = (tEntityID '= "")
 
 	// EHRInterop params/transaction validation
-	$$$TRACE("SDATargetConfigName: "_..SDATargetConfigName)
 	If (..SDATargetConfigName = "") {
 		Set tSC=$$$ERROR($$$EnsErrGeneral,"SDATargetConfigName cannot be NULL")
 	}
@@ -92,7 +97,7 @@ Method EntityPatient(ByRef pSDAContainer As HS.SDA3.Container, pPatientID As %St
 	Set tSC = $$$OK
 	
 	Set tSQLPatient = ##Class(Custom.EHRInterop.DSP.View.Patient).GetPatientByPat()
-	$$$TRACE("PAT tSQL: "_tSQLPatient)
+	If ..TraceSQLQueries { $$$TRACE("PAT tSQL: "_tSQLPatient) }
 	Set tDT1 = $NOW()
 	Set tSC = ..Adapter.ExecuteQuery(.tRSPatient, tSQLPatient, pPatientID)
 	$$$ThrowOnError(tSC)
@@ -117,10 +122,13 @@ Method EntityPatient(ByRef pSDAContainer As HS.SDA3.Container, pPatientID As %St
 	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
-	$$$TRACE("PAT Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	//Set ^tEHRInteropDebug("PAT", "Fetch") = $GET(^tEHRInteropDebug("PAT", "Fetch"))+tFetchDur
-	//Set ^tEHRInteropDebug("PAT", "Iterate") = $GET(^tEHRInteropDebug("PAT", "Iterate"))+tIterateDur
-	//Set ^tEHRInteropDebug("PAT", "Count") = $GET(^tEHRInteropDebug("PAT", "Count"))+tI
+	If ..TraceQueryExecTimes { $$$TRACE("PAT Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	If ..TrackQueryExecTimes
+	{
+		Set ^tEHRInteropDebug("PAT", "Fetch") = $GET(^tEHRInteropDebug("PAT", "Fetch"))+tFetchDur
+		Set ^tEHRInteropDebug("PAT", "Iterate") = $GET(^tEHRInteropDebug("PAT", "Iterate"))+tIterateDur
+		Set ^tEHRInteropDebug("PAT", "Count") = $GET(^tEHRInteropDebug("PAT", "Count"))+tI
+	}
 	
 	Quit tSC
 }
@@ -137,7 +145,7 @@ Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	}
 	
 	Set tSQLEncounters = ##Class(Custom.EHRInterop.DSP.View.Encounter).GetEncountersByPat(pFilterByEnc)
-	$$$TRACE("ENC tSQL: "_tSQLEncounters)
+	If ..TraceSQLQueries { $$$TRACE("ENC tSQL: "_tSQLEncounters) }
 	Set tDT1 = $NOW()
 	Set tSC = ..Adapter.ExecuteQuery(.tRSEncounters, tSQLEncounters, pPatientID, pEncounterID)
 	$$$ThrowOnError(tSC)
@@ -158,10 +166,13 @@ Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
-	$$$TRACE("ENC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	//Set ^tEHRInteropDebug("ENC", "Fetch") = $GET(^tEHRInteropDebug("ENC", "Fetch"))+tFetchDur
-	//Set ^tEHRInteropDebug("ENC", "Iterate") = $GET(^tEHRInteropDebug("ENC", "Iterate"))+tIterateDur
-	//Set ^tEHRInteropDebug("ENC", "Count") = $GET(^tEHRInteropDebug("ENC", "Count"))+tI
+	If ..TraceQueryExecTimes { $$$TRACE("ENC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	If ..TrackQueryExecTimes
+	{
+		Set ^tEHRInteropDebug("ENC", "Fetch") = $GET(^tEHRInteropDebug("ENC", "Fetch"))+tFetchDur
+		Set ^tEHRInteropDebug("ENC", "Iterate") = $GET(^tEHRInteropDebug("ENC", "Iterate"))+tIterateDur
+		Set ^tEHRInteropDebug("ENC", "Count") = $GET(^tEHRInteropDebug("ENC", "Count"))+tI
+	}
 	
 	Quit tSC
 }
@@ -171,7 +182,7 @@ Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	Set tSC = $$$OK
 	
 	Set tSQLDiagnoses = ##Class(Custom.EHRInterop.DSP.View.Diagnosis).GetDiagnosesByPat(pFilterByEnc, pFilterByPK)
-	$$$TRACE("DXG tSQL: "_tSQLDiagnoses)
+	If ..TraceSQLQueries { $$$TRACE("DXG tSQL: "_tSQLDiagnoses) }
 	Set tDT1 = $NOW()
 	Set:1 tArgs($INCREMENT(tArgs)) = pPatientID
 	Set:pFilterByEnc tArgs($INCREMENT(tArgs)) = pEncounterID
@@ -195,11 +206,14 @@ Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
-	$$$TRACE("DXG Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	//Set ^tEHRInteropDebug("DXG", "Fetch") = $GET(^tEHRInteropDebug("DXG", "Fetch"))+tFetchDur
-	//Set ^tEHRInteropDebug("DXG", "Iterate") = $GET(^tEHRInteropDebug("DXG", "Iterate"))+tIterateDur
-	//Set ^tEHRInteropDebug("DXG", "Count") = $GET(^tEHRInteropDebug("DXG", "Count"))+tI
-	
+	If ..TraceQueryExecTimes { $$$TRACE("DXG Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	If ..TrackQueryExecTimes
+	{
+		Set ^tEHRInteropDebug("DXG", "Fetch") = $GET(^tEHRInteropDebug("DXG", "Fetch"))+tFetchDur
+		Set ^tEHRInteropDebug("DXG", "Iterate") = $GET(^tEHRInteropDebug("DXG", "Iterate"))+tIterateDur
+		Set ^tEHRInteropDebug("DXG", "Count") = $GET(^tEHRInteropDebug("DXG", "Count"))+tI
+	}
+
 	Quit tSC
 }
 
@@ -654,14 +668,13 @@ Method SendToSDATarget(pSendingFacility As %String, pSDAContainer As HS.SDA3.Con
 	Set tSDAXML = ##Class(%Stream.FileCharacter).%New()
 	Set tSDAXML.TranslateTable = "UTF8"
 	Set tSC = pSDAContainer.ToQuickXMLStream(.tSDAXML)
-	$$$TRACE("tSDAXML Size: "_tSDAXML.Size)
+	//$$$TRACE("tSDAXML Size: "_tSDAXML.Size)
 	If $$$ISERR(tSC) Quit tSC
 	
 	//Sending to N targets
 	For i=1:1:$Length(..SDATargetConfigName, ",")
 	{
 		Set tSDATarget = $Piece(..SDATargetConfigName,",",i)
-		$$$TRACE("Sending to target: "_tSDATarget)
 		Set tRequest = ##class(Custom.EHRInterop.Core.Operation.SOAP.Operation.Request.SaveSDARequest).%New()
 
 		Set tRequest.pRequest.InfoID = $ZSTRIP(pSendingFacility_"_"_pMRN_"_"_pEncounter_"_"_pEntityID_"_"_pEntityType, "*C")

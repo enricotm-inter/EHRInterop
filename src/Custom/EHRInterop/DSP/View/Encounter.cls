@@ -1,18 +1,20 @@
-Class Custom.EHRInterop.DSP.View.Encounter Extends %RegisteredObject
+Class Custom.EHRInterop.DSP.View.Encounter Extends Custom.EHRInterop.Core.Util.View
 {
 
 ClassMethod GetEncountersByPat(pIncludeWhereByPK As %Boolean) As %String
 {
-    Set tQueryID = $CLASSNAME()_"||QueryEncounterByPat"
-	Set tQueryXData = ##class(%Dictionary.CompiledXData).%OpenId(tQueryID)
-	Set tSQL = tQueryXData.Data.Read()
-				
-	Set:pIncludeWhereByPK tSQL = tSQL_"AND ENC_PK = ? "
+   	Set tSQL = ..GetXDataQuery($this, "GetEncountersByPat")
+	Set:pIncludeWhereByPK tSQL = ..IncludeWhereByPK(tSQL)
 	
 	Quit tSQL
 }
 
-XData QueryEncounterByPat [ MimeType = application/sql ]
+ClassMethod TriggerENCByDate() As %String
+{
+	Quit ..GetXDataQuery($this, "TriggerENCByDate")
+}
+
+XData GetEncountersByPat [ MimeType = application/sql ]
 {
 	SELECT
 		ENC_PK,
@@ -34,40 +36,40 @@ XData QueryEncounterByPat [ MimeType = application/sql ]
 		ENC_CLI_NAM
 	FROM HS_ENCOUNTER
 	WHERE ENC_PAT_FK = ?
+	/*** AND ENC_PK = ? ***/
 }
 
-ClassMethod TriggerENCByDate() As %String
+XData TriggerENCByDate [ MimeType = application/sql ]
 {
-	Set tSQL = "SELECT "_
-				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
-				"ENTITY_ID, "_
-				"PATIENT_ID, "_
-				"ENCOUNTER_ID, "_
-				"ENTITY_TYPE, "_
-				"ENTITY_DATE FROM ( "_
-				"SELECT FIRST ? * FROM ( "_
-				"/* Encounter */ "_
-				"SELECT "_
-				"enc_pk ENTITY_ID, "_
-				"enc_pat_fk PATIENT_ID, "_
-				"enc_pk ENCOUNTER_ID, "_
-				"'PAT,ENC' ENTITY_TYPE, "_
-				"LEAST(NOW(), GREATEST( "_
-				"NVL(enc_tr1_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')), "_
-				"NVL(enc_tr2_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')), "_
-				"NVL(enc_tr3_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')) "_
-				")) ENTITY_DATE "_
-				"FROM hs_encounter "_
-				"WHERE (1=0 "_
-				"OR (enc_tr1_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND enc_tr1_dat <= NOW()) "_
-				"OR (enc_tr2_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND enc_tr2_dat <= NOW()) "_
-				"OR (enc_tr3_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND enc_tr3_dat <= NOW()) "_
-				") "_
-				") "_
-				"ORDER BY ENTITY_DATE "_
-				") "
-
-	Quit tSQL
+	SELECT
+		TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID,
+		ENTITY_ID,
+		PATIENT_ID,
+		ENCOUNTER_ID,
+		ENTITY_TYPE,
+		ENTITY_DATE
+	FROM (
+		SELECT TOP ? * FROM (
+			/* Encounter */
+			SELECT
+				ENC_PK ENTITY_ID,
+				ENC_PAT_FK PATIENT_ID,
+				ENC_PK ENCOUNTER_ID,
+				'PAT,ENC' ENTITY_TYPE,
+				LEAST(NOW(), GREATEST(
+					NVL(ENC_TR1_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')),
+					NVL(ENC_TR2_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')),
+					NVL(ENC_TR3_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS'))
+				)) ENTITY_DATE
+			FROM HS_ENCOUNTER
+			WHERE (1=0
+				OR (ENC_TR1_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND enc_tr1_dat <= NOW())
+				OR (ENC_TR2_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND enc_tr2_dat <= NOW())
+				OR (ENC_TR3_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND enc_tr3_dat <= NOW())
+			)
+		)
+		ORDER BY ENTITY_DATE
+	)
 }
 
 }
