@@ -3,7 +3,7 @@ Class Custom.EHRInterop.DSP.View.Encounter Extends Custom.EHRInterop.Core.Util.V
 
 ClassMethod GetEncountersByPat(pIncludeWhereByPK As %Boolean) As %String
 {
-   	Set tSQL = ..GetXDataQuery($this, "GetEncountersByPat")
+   	Set tSQL = ..GetQuery($this, "GetEncountersByPat")
 	Set:pIncludeWhereByPK tSQL = ..IncludeWhereByPK(tSQL)
 	
 	Quit tSQL
@@ -11,7 +11,7 @@ ClassMethod GetEncountersByPat(pIncludeWhereByPK As %Boolean) As %String
 
 ClassMethod TriggerENCByDate() As %String
 {
-	Quit ..GetXDataQuery($this, "TriggerENCByDate")
+	Quit ..GetQuery($this, "TriggerENCByDate")
 }
 
 XData GetEncountersByPat [ MimeType = application/sql ]
@@ -52,7 +52,7 @@ XData TriggerENCByDate [ MimeType = application/sql ]
 		SELECT TOP ? * FROM (
 			/* Encounter */
 			SELECT
-				ENC_PK ENTITY_ID,
+				'' ENTITY_ID,
 				ENC_PAT_FK PATIENT_ID,
 				ENC_PK ENCOUNTER_ID,
 				'PAT,ENC' ENTITY_TYPE,

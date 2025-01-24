@@ -1,7 +1,7 @@
 Class Custom.EHRInterop.Core.Util.View Extends %RegisteredObject
 {
 
-ClassMethod GetXDataQuery(pObj As %RegisteredObject, pQueryName As %String) As %String
+ClassMethod GetQuery(pObj As %RegisteredObject, pQueryName As %String) As %String
 {
 	Set tQueryID = $CLASSNAME(pObj)_"||"_pQueryName
 	Set tQueryXData = ##class(%Dictionary.CompiledXData).%OpenId(tQueryID)

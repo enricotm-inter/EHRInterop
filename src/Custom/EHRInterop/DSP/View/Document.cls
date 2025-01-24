@@ -1,65 +1,75 @@
-Class Custom.EHRInterop.DSP.View.Document Extends %RegisteredObject
+Class Custom.EHRInterop.DSP.View.Document Extends Custom.EHRInterop.Core.Util.View
 {
 
 ClassMethod GetDocumentsByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK As %Boolean) As %String
 {
-    Set tSQL =	"SELECT "_
-					"DOC_PK, "_
-					"DOC_PAT_FK, "_
-					"DOC_ENC_FK, "_
-					"DOC_TYP_COD, "_
-					"DOC_TYP_COD AS DOC_TYP_DSC, "_
-					"DOC_NAM, "_
-					"DOC_DAT, "_
-					"DOC_CLI_COD, "_
-					"DOC_CLI_CONS_COD, "_
-					"DOC_CLI_CONS_DSC, "_
-					"DOC_CLI_NAM, "_
-					"DOC_BDT, "_
-					"DOC_BOD, "_
-					"DOC_STA, "_
-					"ENC_FAC_COD, "_
-					"ENC_FAC_DSC "_
-				"FROM HS_DOCUMENT "_
-				"LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = DOC_ENC_FK "_
-				"WHERE DOC_PAT_FK = ? "
-				
-	Set:pIncludeWhereByEnc tSQL = tSQL_"AND DOC_ENC_FK = ? "
-	Set:pIncludeWhereByPK tSQL = tSQL_"AND DOC_PK = ? "
+	Set tSQL = ..GetQuery($this, "GetDocumentsByPat")
+	Set:pIncludeWhereByEnc tSQL = ..IncludeWhereByEnc(tSQL)
+	Set:pIncludeWhereByPK tSQL = ..IncludeWhereByPK(tSQL)
 	
 	Quit tSQL
 }
 
 ClassMethod TriggerDOCByDate() As %String
 {
-	Set tSQL = "SELECT "_
-				"TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID, "_
-				"ENTITY_ID, "_
-				"PATIENT_ID, "_
-				"ENCOUNTER_ID, "_
-				"ENTITY_TYPE, "_
-				"ENTITY_DATE "_
-				"FROM ( "_
-				"SELECT FIRST ? * FROM ( "_
-				"/* Document */ "_
-				"SELECT "_
-				"doc_pk ENTITY_ID, "_
-				"doc_pat_fk PATIENT_ID, "_
-				"doc_enc_fk ENCOUNTER_ID, "_
-				"'PAT,ENC,DOC' ENTITY_TYPE, "_
-				"LEAST(NOW(), GREATEST( "_
-				"NVL(doc_tr1_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')), "_
-				"NVL(doc_tr2_dat, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')) "_
-				")) ENTITY_DATE "_
-				"FROM ( "_
-				"SELECT doc_pk, doc_pat_fk, doc_enc_fk , doc_tr1_dat, doc_tr2_dat FROM hs_document WHERE doc_tr1_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND doc_tr1_dat <= NOW() "_
-				"UNION "_
-				"SELECT doc_pk, doc_pat_fk, doc_enc_fk , doc_tr1_dat, doc_tr2_dat FROM hs_document WHERE doc_tr2_dat > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND doc_tr2_dat <= NOW() "_
-				") "_
-				") "_
-				"ORDER BY ENTITY_DATE "_
-				") "
-	Quit tSQL
+	Quit ..GetQuery($this, "TriggerDOCByDate")
+}
+
+XData GetDocumentsByPat [ MimeType = application/sql ]
+{
+	SELECT 
+		DOC_PK, 
+		DOC_PAT_FK, 
+		DOC_ENC_FK, 
+		DOC_TYP_COD, 
+		DOC_TYP_COD AS DOC_TYP_DSC, 
+		DOC_NAM, 
+		DOC_DAT, 
+		DOC_CLI_COD, 
+		DOC_CLI_CONS_COD, 
+		DOC_CLI_CONS_DSC, 
+		DOC_CLI_NAM, 
+		DOC_BDT, 
+		DOC_BOD, 
+		DOC_STA, 
+		ENC_FAC_COD, 
+		ENC_FAC_DSC 
+	FROM HS_DOCUMENT 
+	LEFT JOIN HS_ENCOUNTER enc ON enc.ENC_PK = DOC_ENC_FK 
+	WHERE DOC_PAT_FK = ?
+	/*& --AND DOC_ENC_FK = ? &*/
+	/*% --AND DOC_PK = ? %*/
+}
+
+XData TriggerDOCByDate [ MimeType = application/sql ]
+{
+	SELECT
+		TRIM(PATIENT_ID || '_' || ENTITY_TYPE || '_' || ENTITY_ID || '_' || ENTITY_DATE) INFO_ID,
+		ENTITY_ID,
+		PATIENT_ID,
+		ENCOUNTER_ID,
+		ENTITY_TYPE,
+		ENTITY_DATE
+	FROM (
+		SELECT TOP ? * FROM (
+			/* Document */
+			SELECT
+				DOC_PK ENTITY_ID,
+				DOC_PAT_FK PATIENT_ID,
+				DOC_ENC_FK ENCOUNTER_ID,
+				'PAT,ENC,DOC' ENTITY_TYPE,
+				LEAST(NOW(), GREATEST(
+					NVL(DOC_TR1_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS')),
+					NVL(DOC_TR2_DAT, TO_TIMESTAMP('1900-01-01 00:00:00', 'YYYY-MM-DD HH:MI:SS'))
+				)) ENTITY_DATE
+			FROM (
+				SELECT DOC_PK, DOC_PAT_FK, DOC_ENC_FK , DOC_TR1_DAT, DOC_TR2_DAT FROM HS_DOCUMENT WHERE DOC_TR1_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND DOC_TR1_DAT <= NOW()
+				UNION
+				SELECT DOC_PK, DOC_PAT_FK, DOC_ENC_FK , DOC_TR1_DAT, DOC_TR2_DAT FROM HS_DOCUMENT WHERE DOC_TR2_DAT > TO_TIMESTAMP(?, 'YYYY-MM-DD HH:MI:SS') AND DOC_TR2_DAT <= NOW()
+			)
+		)
+		ORDER BY ENTITY_DATE
+	)
 }
 
 }

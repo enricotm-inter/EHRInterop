@@ -28,6 +28,8 @@ Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Outpu
 	#; Set tSC = ..Adapter.ExecuteUpdate(.tCount, tSQLIsolationLevel)
 	#; https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=RSQL_SETTRANSACTION
 	Set tSC = $$$OK
+
+	$$$LOGINFO("EntityToSDA Init")
 	
 	// EHRInterop processing parameters
 	Set tPatientID = pRequest.PatientID
@@ -70,7 +72,7 @@ Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Outpu
 	
 	// Generating SDA XML Actions. Always be defined a PAT+ENC. Both categories are the minimum to generate a SDA.
 	If ($LISTFIND(tEntityTypes,"PAT") > 0) { Set tSC = ..EntityPatient(.tSDAContainer,tPatientID,tCodingStandard) }
-	If ($LISTFIND(tEntityTypes,"ENC") > 0) { Set tSC = ..EntityEncounters(.tSDAContainer,tFilterByEnc,tFilterByPK,tPatientID,tEncounterID,tCodingStandard) }
+	If ($LISTFIND(tEntityTypes,"ENC") > 0) { Set tSC = ..EntityEncounters(.tSDAContainer,tFilterByEnc,tPatientID,tEncounterID,tCodingStandard) }
 	If ($LISTFIND(tEntityTypes,"DXG") > 0) { Set tSC = ..EntityDiagnoses(.tSDAContainer,tFilterByEnc,tFilterByPK,tPatientID,tEncounterID,tEntityID,tCodingStandard) }
 	If ($LISTFIND(tEntityTypes,"DOC") > 0) { Set tSC = ..EntityDocuments(.tSDAContainer,tFilterByEnc,tFilterByPK,tPatientID,tEncounterID,tEntityID,tCodingStandard) }
 	If ($LISTFIND(tEntityTypes,"OBS") > 0) { Set tSC = ..EntityObservations(.tSDAContainer,tFilterByEnc,tFilterByPK,tPatientID,tEncounterID,tEntityID,tCodingStandard) }
@@ -88,6 +90,8 @@ Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Outpu
 	//Sending it to SDA Targets
 	Set tSC = ..SendToSDATarget(tSendingFacility, tSDAContainer, pRequest.PatientID, pRequest.EncounterID, pRequest.EntityID, pRequest.EntityType)
 	$$$ThrowOnError(tSC)
+
+	$$$LOGINFO("EntityToSDA End")
 	
 	Quit $$$OK
 }
@@ -104,7 +108,7 @@ Method EntityPatient(ByRef pSDAContainer As HS.SDA3.Container, pPatientID As %St
 	
 	Set tDT2 = $NOW()
 	Set tI = 0
-	If (tRSPatient.Next())
+	While (tRSPatient.Next())
 	{
 		Set tI = tI+1
 		Set tSC = ##Class(Custom.EHRInterop.DSP.DT.SDA3.Patient).Transform(tRSPatient, .tSDAPatient, pCodingStandard)
@@ -112,17 +116,18 @@ Method EntityPatient(ByRef pSDAContainer As HS.SDA3.Container, pPatientID As %St
 
 		Set pSDAContainer.Patient = tSDAPatient
 	}
-	Else
-	{
-		Set tSC=$$$ERROR($$$EnsErrGeneral,"PatientID "_pPatientID_" did not return in HS_PATIENT")
-		$$$ThrowOnError(tSC)
-	}
 	
 	Set tDT3 = $NOW()
-	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
+
+	//Query Count validation
+	If (tI '= 1) { $$$LOGWARNING("PAT Count Incorrect: Expected 1, found "_tI) }
+
+	//Tracing query exec times
 	If ..TraceQueryExecTimes { $$$TRACE("PAT Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	
+	//Tracking query exec times
 	If ..TrackQueryExecTimes
 	{
 		Set ^tEHRInteropDebug("PAT", "Fetch") = $GET(^tEHRInteropDebug("PAT", "Fetch"))+tFetchDur
@@ -133,16 +138,9 @@ Method EntityPatient(ByRef pSDAContainer As HS.SDA3.Container, pPatientID As %St
 	Quit tSC
 }
 
-Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pCodingStandard As %String) As %Status
+Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pPatientID As %String, pEncounterID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
-	
-	//Skip if EncounterId null BUT EntityId not null (otherwise it would generate all encounters from the patient)
-	If ('pFilterByEnc && pFilterByPK)
-	{
-		$$$TRACE("SKIP ENC")
-		Quit tSC
-	}
 	
 	Set tSQLEncounters = ##Class(Custom.EHRInterop.DSP.View.Encounter).GetEncountersByPat(pFilterByEnc)
 	If ..TraceSQLQueries { $$$TRACE("ENC tSQL: "_tSQLEncounters) }
@@ -161,12 +159,18 @@ Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 		Set tSC = pSDAContainer.Encounters.Insert(tSDAEncounter)
 		$$$ThrowOnError(tSC)
 	}
-	
+
 	Set tDT3 = $NOW()
-	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
+
+	//Query Count validation
+	If ((pFilterByEnc) && (tI '= 1)) { $$$LOGWARNING("ENC Query Count INCORRECT, once FilteredByEnc: Expected 1, found "_tI) }
+	
+	//Tracing query exec times
 	If ..TraceQueryExecTimes { $$$TRACE("ENC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	
+	//Tracking query exec times
 	If ..TrackQueryExecTimes
 	{
 		Set ^tEHRInteropDebug("ENC", "Fetch") = $GET(^tEHRInteropDebug("ENC", "Fetch"))+tFetchDur
@@ -177,7 +181,7 @@ Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	Quit tSC
 }
 
-Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -201,12 +205,18 @@ Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 		Set tSC = pSDAContainer.Diagnoses.Insert(tSDADiagnosis)
 		$$$ThrowOnError(tSC)
 	}
-	
+
 	Set tDT3 = $NOW()
-	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
+
+	//Query Count validation
+	If ((pFilterByPK) && (tI '= 1)) { $$$LOGWARNING("DXG Query Count INCORRECT, once FilteredByPK: Expected 1, found "_tI) }
+	
+	//Tracing query exec times
 	If ..TraceQueryExecTimes { $$$TRACE("DXG Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+
+	//Tracking query exec times
 	If ..TrackQueryExecTimes
 	{
 		Set ^tEHRInteropDebug("DXG", "Fetch") = $GET(^tEHRInteropDebug("DXG", "Fetch"))+tFetchDur
@@ -217,12 +227,12 @@ Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	Quit tSC
 }
 
-Method EntityDocuments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityDocuments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
 	Set tSQLDocuments = ##Class(Custom.EHRInterop.DSP.View.Document).GetDocumentsByPat(pFilterByEnc, pFilterByPK)
-	$$$TRACE("DOC tSQL: "_tSQLDocuments)
+	If ..TraceSQLQueries { $$$TRACE("DOC tSQL: "_tSQLDocuments) }
 	Set tDT1 = $NOW()
 	Set:1 tArgs($INCREMENT(tArgs)) = pPatientID
 	Set:pFilterByEnc tArgs($INCREMENT(tArgs)) = pEncounterID
@@ -243,18 +253,27 @@ Method EntityDocuments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	}
 	
 	Set tDT3 = $NOW()
-	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
-	$$$TRACE("DOC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	//Set ^tEHRInteropDebug("DOC", "Fetch") = $GET(^tEHRInteropDebug("DOC", "Fetch"))+tFetchDur
-	//Set ^tEHRInteropDebug("DOC", "Iterate") = $GET(^tEHRInteropDebug("DOC", "Iterate"))+tIterateDur
-	//Set ^tEHRInteropDebug("DOC", "Count") = $GET(^tEHRInteropDebug("DOC", "Count"))+tI
+
+	//Query Count validation
+	If ((pFilterByPK) && (tI '= 1)) { $$$LOGWARNING("DOC Query Count INCORRECT, once FilteredByPK: Expected 1, found "_tI) }
+
+	//Tracing query exec times
+	If ..TraceQueryExecTimes { $$$TRACE("DOC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	
+	//Tracking query exec times
+	If ..TrackQueryExecTimes
+	{
+		Set ^tEHRInteropDebug("DOC", "Fetch") = $GET(^tEHRInteropDebug("DOC", "Fetch"))+tFetchDur
+		Set ^tEHRInteropDebug("DOC", "Iterate") = $GET(^tEHRInteropDebug("DOC", "Iterate"))+tIterateDur
+		Set ^tEHRInteropDebug("DOC", "Count") = $GET(^tEHRInteropDebug("DOC", "Count"))+tI
+	}
 	
 	Quit tSC
 }
 
-Method EntityObservations(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityObservations(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -291,7 +310,7 @@ Method EntityObservations(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc
 	Quit tSC
 }
 
-Method EntityProcedures(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityProcedures(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -328,7 +347,7 @@ Method EntityProcedures(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	Quit tSC
 }
 
-Method EntitySocialHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntitySocialHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -365,7 +384,7 @@ Method EntitySocialHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterBy
 	Quit tSC
 }
 
-Method EntityIllnessHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityIllnessHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -402,7 +421,7 @@ Method EntityIllnessHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterB
 	Quit tSC
 }
 
-Method EntityFamilyHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityFamilyHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -439,7 +458,7 @@ Method EntityFamilyHistories(ByRef pSDAContainer As HS.SDA3.Container, pFilterBy
 	Quit tSC
 }
 
-Method EntityRadOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityRadOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -476,7 +495,7 @@ Method EntityRadOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	Quit tSC
 }
 
-Method EntityLabOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityLabOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -513,7 +532,7 @@ Method EntityLabOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	Quit tSC
 }
 
-Method EntityOtherOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityOtherOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -550,7 +569,7 @@ Method EntityOtherOrders(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc 
 	Quit tSC
 }
 
-Method EntityMedications(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityMedications(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -587,7 +606,7 @@ Method EntityMedications(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc 
 	Quit tSC
 }
 
-Method EntityAppointments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityAppointments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -624,7 +643,7 @@ Method EntityAppointments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc
 	Quit tSC
 }
 
-Method EntityAlerts(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %String, pFilterByPK As %String, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
+Method EntityAlerts(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As %Boolean, pFilterByPK As %Boolean, pPatientID As %String, pEncounterID As %String, pEntityID As %String, pCodingStandard As %String) As %Status
 {
 	Set tSC = $$$OK
 	

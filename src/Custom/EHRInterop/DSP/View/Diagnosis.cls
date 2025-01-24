@@ -41,8 +41,8 @@ XData GetDiagnosesByPat [ MimeType = application/sql ]
 	FROM HS_DIAGNOSIS
 	LEFT JOIN HS_ENCOUNTER E ON E.ENC_PK = DXG_ENC_FK
 	WHERE DXG_PAT_FK = ?
-	/*ENCFK* --AND DXG_ENC_FK = ? *ENCFK*/
-	/*PK* --AND DXG_PK = ? *PK*/
+	/*& --AND DXG_ENC_FK = ? &*/
+	/*% --AND DXG_PK = ? %*/
 }
 
 XData TriggerDXGByDate [ MimeType = application/sql ]
