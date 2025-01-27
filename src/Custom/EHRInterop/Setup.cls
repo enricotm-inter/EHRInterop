@@ -96,7 +96,7 @@ ClassMethod CompileClasses() As %Status
     Set tSC = $$$OK
     Set srcPath = "/mnt/src"
     Write !, "Compiling classes on '"_srcPath_"...", !
-    Set tSC = $SYSTEM.OBJ.ImportDir(srcPath,"","c",,1)
+    Set tSC = $SYSTEM.OBJ.ImportDir(srcPath,,"cuk",,1)
     Return tSC
 }
 
