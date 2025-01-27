@@ -12,8 +12,8 @@ git clone https://github.com/enricotm-inter/EHRInterop.git
 
 ---
 ## Running the `Docker` container
-To start the IRIS instance, simply run `docker compose up` in the terminal
-> *After running **docker compose up**, there is no need for any further configuration. This section will walkthrough some of the steps for the initialization, but it may be skipped to [Opening the Management Portal](#opening-the-management-portal)*
+To start the IRIS instance, simply run `docker compose up --build` in the terminal
+> *After running **docker compose up --build**, there is no need for any further configuration. This section will walkthrough some of the steps for the initialization, but it may be skipped to [Opening the Management Portal](#opening-the-management-portal)*
 
 ![alt text](images/buildimage.png)
 

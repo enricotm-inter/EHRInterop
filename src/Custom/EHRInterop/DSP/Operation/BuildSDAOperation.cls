@@ -23,8 +23,7 @@ Parameter SETTINGS = "SendingFacility:Data,CodingStandard:Data,SDATargetConfigNa
 
 Method EntityToSDA(pRequest As Custom.EHRInterop.Core.Msg.BuildSDARequest, Output pResponse As Ens.Response) As %Status
 {
-	//New Comment
-	
+ 	
 	// Setting Isolation Level to Uncommited Read
 	#; Set tSQLIsolationLevel = "SET ISOLATION TO DIRTY READ WITH WARNING;"
 	#; Set tSC = ..Adapter.ExecuteUpdate(.tCount, tSQLIsolationLevel)
