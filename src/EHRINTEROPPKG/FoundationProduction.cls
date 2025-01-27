@@ -132,9 +132,9 @@ XData ProductionDefinition
     <Setting Target="Adapter" Name="Credentials">irisJDBC</Setting>
   </Item>
   <Item Name="EHRInterop Service ByDate PRC" Category="" ClassName="Custom.EHRInterop.Core.Service.ByDate" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
-    <Setting Target="Adapter" Name="CallInterval">60</Setting>
-    <Setting Target="Host" Name="InitialDate">2023-12-04 00:00:00</Setting>
-    <Setting Target="Host" Name="MaxRows">999999</Setting>
+    <Setting Target="Adapter" Name="CallInterval">9999999</Setting>
+    <Setting Target="Host" Name="InitialDate">1900-01-01 00:00:00</Setting>
+    <Setting Target="Host" Name="MaxRows">1000</Setting>
     <Setting Target="Host" Name="TargetHost">EHRInterop Operation</Setting>
     <Setting Target="Adapter" Name="DSN">irisJDBC</Setting>
     <Setting Target="Adapter" Name="JGService">JG</Setting>
