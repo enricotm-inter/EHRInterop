@@ -121,13 +121,10 @@ Method EntityPatient(ByRef pSDAContainer As HS.SDA3.Container, pPatientID As %St
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 
-	//Query Count validation
 	If (tI '= 1) { $$$LOGWARNING("PAT Count Incorrect: Expected 1, found "_tI) }
 
-	//Tracing query exec times
 	If ..TraceQueryExecTimes { $$$TRACE("PAT Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
 	
-	//Tracking query exec times
 	If ..TrackQueryExecTimes
 	{
 		Set ^tEHRInteropDebug("PAT", "Fetch") = $GET(^tEHRInteropDebug("PAT", "Fetch"))+tFetchDur
@@ -164,13 +161,10 @@ Method EntityEncounters(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 
-	//Query Count validation
 	If ((pFilterByEnc) && (tI '= 1)) { $$$LOGWARNING("ENC Query Count INCORRECT, once FilteredByEnc: Expected 1, found "_tI) }
 	
-	//Tracing query exec times
 	If ..TraceQueryExecTimes { $$$TRACE("ENC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
 	
-	//Tracking query exec times
 	If ..TrackQueryExecTimes
 	{
 		Set ^tEHRInteropDebug("ENC", "Fetch") = $GET(^tEHRInteropDebug("ENC", "Fetch"))+tFetchDur
@@ -210,13 +204,10 @@ Method EntityDiagnoses(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 
-	//Query Count validation
 	If ((pFilterByPK) && (tI '= 1)) { $$$LOGWARNING("DXG Query Count INCORRECT, once FilteredByPK: Expected 1, found "_tI) }
 	
-	//Tracing query exec times
 	If ..TraceQueryExecTimes { $$$TRACE("DXG Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
 
-	//Tracking query exec times
 	If ..TrackQueryExecTimes
 	{
 		Set ^tEHRInteropDebug("DXG", "Fetch") = $GET(^tEHRInteropDebug("DXG", "Fetch"))+tFetchDur
@@ -256,13 +247,10 @@ Method EntityDocuments(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc As
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
 
-	//Query Count validation
 	If ((pFilterByPK) && (tI '= 1)) { $$$LOGWARNING("DOC Query Count INCORRECT, once FilteredByPK: Expected 1, found "_tI) }
 
-	//Tracing query exec times
 	If ..TraceQueryExecTimes { $$$TRACE("DOC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
 	
-	//Tracking query exec times
 	If ..TrackQueryExecTimes
 	{
 		Set ^tEHRInteropDebug("DOC", "Fetch") = $GET(^tEHRInteropDebug("DOC", "Fetch"))+tFetchDur
@@ -278,7 +266,7 @@ Method EntityObservations(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc
 	Set tSC = $$$OK
 	
 	Set tSQLObservations = ##Class(Custom.EHRInterop.DSP.View.Observation).GetObservationsByPat(pFilterByEnc, pFilterByPK)
-	$$$TRACE("OBS tSQL: "_tSQLObservations)
+	If ..TraceSQLQueries { $$$TRACE("OBS tSQL: "_tSQLObservations) }
 	Set tDT1 = $NOW()
 	Set:1 tArgs($INCREMENT(tArgs)) = pPatientID
 	Set:pFilterByEnc tArgs($INCREMENT(tArgs)) = pEncounterID
@@ -299,13 +287,19 @@ Method EntityObservations(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc
 	}
 	
 	Set tDT3 = $NOW()
-	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
-	$$$TRACE("OBS Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	//Set ^tEHRInteropDebug("OBS", "Fetch") = $GET(^tEHRInteropDebug("OBS", "Fetch"))+tFetchDur
-	//Set ^tEHRInteropDebug("OBS", "Iterate") = $GET(^tEHRInteropDebug("OBS", "Iterate"))+tIterateDur
-	//Set ^tEHRInteropDebug("OBS", "Count") = $GET(^tEHRInteropDebug("OBS", "Count"))+tI
+
+	If ((pFilterByPK) && (tI '= 1)) { $$$LOGWARNING("OBS Query Count INCORRECT, once FilteredByPK: Expected 1, found "_tI) }
+
+	If ..TraceQueryExecTimes { $$$TRACE("OBS Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	
+	If ..TrackQueryExecTimes
+	{
+		Set ^tEHRInteropDebug("OBS", "Fetch") = $GET(^tEHRInteropDebug("OBS", "Fetch"))+tFetchDur
+		Set ^tEHRInteropDebug("OBS", "Iterate") = $GET(^tEHRInteropDebug("OBS", "Iterate"))+tIterateDur
+		Set ^tEHRInteropDebug("OBS", "Count") = $GET(^tEHRInteropDebug("OBS", "Count"))+tI
+	}
 	
 	Quit tSC
 }
@@ -315,7 +309,7 @@ Method EntityProcedures(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	Set tSC = $$$OK
 	
 	Set tSQLProcedures = ##Class(Custom.EHRInterop.DSP.View.Procedure).GetProceduresByPat(pFilterByEnc, pFilterByPK)
-	$$$TRACE("PRC tSQL: "_tSQLProcedures)
+	If ..TraceSQLQueries { $$$TRACE("PRC tSQL: "_tSQLProcedures) }
 	Set tDT1 = $NOW()
 	Set:1 tArgs($INCREMENT(tArgs)) = pPatientID
 	Set:pFilterByEnc tArgs($INCREMENT(tArgs)) = pEncounterID
@@ -336,13 +330,19 @@ Method EntityProcedures(ByRef pSDAContainer As HS.SDA3.Container, pFilterByEnc A
 	}
 	
 	Set tDT3 = $NOW()
-	
 	Set tFetchDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT1,tDT2)
 	Set tIterateDur = $SYSTEM.SQL.Functions.DATEDIFF("ms",tDT2,tDT3)
-	$$$TRACE("PRC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI)
-	//Set ^tEHRInteropDebug("PRC", "Fetch") = $GET(^tEHRInteropDebug("PRC", "Fetch"))+tFetchDur
-	//Set ^tEHRInteropDebug("PRC", "Iterate") = $GET(^tEHRInteropDebug("PRC", "Iterate"))+tIterateDur
-	//Set ^tEHRInteropDebug("PRC", "Count") = $GET(^tEHRInteropDebug("PRC", "Count"))+tI
+
+	If ((pFilterByPK) && (tI '= 1)) { $$$LOGWARNING("OBS Query Count INCORRECT, once FilteredByPK: Expected 1, found "_tI) }
+
+	If ..TraceQueryExecTimes { $$$TRACE("PRC Timestamps: Fetch: "_tFetchDur_"ms; Iterate: "_tIterateDur_"ms; Count: "_tI) }
+	
+	If ..TrackQueryExecTimes
+	{
+		Set ^tEHRInteropDebug("PRC", "Fetch") = $GET(^tEHRInteropDebug("PRC", "Fetch"))+tFetchDur
+		Set ^tEHRInteropDebug("PRC", "Iterate") = $GET(^tEHRInteropDebug("PRC", "Iterate"))+tIterateDur
+		Set ^tEHRInteropDebug("PRC", "Count") = $GET(^tEHRInteropDebug("PRC", "Count"))+tI
+	}
 	
 	Quit tSC
 }

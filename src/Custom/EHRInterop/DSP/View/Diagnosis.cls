@@ -3,7 +3,7 @@ Class Custom.EHRInterop.DSP.View.Diagnosis Extends Custom.EHRInterop.Core.Util.V
 
 ClassMethod GetDiagnosesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK As %Boolean) As %String
 {
-	Set tSQL = ..GetXDataQuery($this, "GetDiagnosesByPat")
+	Set tSQL = ..GetQuery($this, "GetDiagnosesByPat")
 	Set:pIncludeWhereByEnc tSQL = ..IncludeWhereByEnc(tSQL)
 	Set:pIncludeWhereByPK tSQL = ..IncludeWhereByPK(tSQL)
 
@@ -12,7 +12,7 @@ ClassMethod GetDiagnosesByPat(pIncludeWhereByEnc As %Boolean, pIncludeWhereByPK 
 
 ClassMethod TriggerDXGByDate() As %String
 {
-	Quit ..GetXDataQuery($this, "TriggerDXGByDate")
+	Quit ..GetQuery($this, "TriggerDXGByDate")
 }
 
 XData GetDiagnosesByPat [ MimeType = application/sql ]

@@ -50,6 +50,9 @@ Method OnProcessInput(pInput As EnsLib.SQL.Snapshot, Output pOutput As %Register
 	Set tRequest.PatientID = $ZSTRIP(pInput.Get("PATIENT_ID"), "*C")
 	Set tRequest.EncounterID = $ZSTRIP(pInput.Get("ENCOUNTER_ID"), "*C")
 	Set tRequest.EntityType = $ZSTRIP(pInput.Get("ENTITY_TYPE"), "*C")
+	Set tRequest.EventDescription = ""
+	Set tRequest.Action = "AddOrUpdate"
+	Set tRequest.EntityHash = ""
 	Set tRequest.EntityDate = tEntityDate
 	Set tSC = ..SendRequestAsync(..TargetHost, tRequest)
 	
